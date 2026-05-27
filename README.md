@@ -1,2 +1,2 @@
-# intelligent-batch-anomaly-handler
+# intelligent-batch-incident-handler
 Project development in progress.
