@@ -1,0 +1,14 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9094
+
+aws:
+  dynamodb:
+    endpoint: http://localhost:8000
+    region: us-east-1
+
+incident:
+  llm:
+    provider: noop
+  notify:
+    provider: noop

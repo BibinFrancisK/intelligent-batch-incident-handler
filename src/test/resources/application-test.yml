@@ -1,0 +1,17 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9999
+  threads:
+    virtual:
+      enabled: false
+
+incident:
+  llm:
+    provider: noop
+  notify:
+    provider: noop
+
+logging:
+  level:
+    root: WARN
+    io.batchintel: DEBUG
