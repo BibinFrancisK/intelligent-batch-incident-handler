@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: incident-intelligence-service
+  threads:
+    virtual:
+      enabled: true
+  kafka:
+    consumer:
+      group-id: incident-intelligence
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+logging:
+  level:
+    io.batchintel: INFO
+    org.springframework.kafka: WARN
