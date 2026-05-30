@@ -27,3 +27,4 @@ Thumbs.db
 # Internal planning docs — not part of the public repo
 docs/*PLAN*.md
 docs/week_*.md
+docs/**NOTES**.md
