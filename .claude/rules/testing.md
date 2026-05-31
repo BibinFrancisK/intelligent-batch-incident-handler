@@ -1,6 +1,6 @@
 # Testing Rules
 
-- Source of truth: `CLAUDE.md` and `docs/EXECUTION_PLAN.md` § 11 — Testing Strategy.
+- Source of truth: `CLAUDE.md`.
 
 ---
 

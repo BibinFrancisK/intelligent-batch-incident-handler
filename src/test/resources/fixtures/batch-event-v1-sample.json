@@ -1,0 +1,53 @@
+[
+  {
+    "eventId": "550e8400-e29b-41d4-a716-446655440001",
+    "schemaVersion": "v1",
+    "jobType": "ANNUITY_PAYOUT",
+    "timestamp": "2024-01-15T02:00:00Z",
+    "payload": {
+      "eventType": "JOB_STARTED",
+      "runId": "run-2024-0115-001",
+      "sourceFile": "annuity_export_2024_0115.csv",
+      "expectedRows": 150000
+    }
+  },
+  {
+    "eventId": "550e8400-e29b-41d4-a716-446655440002",
+    "schemaVersion": "v1",
+    "jobType": "ANNUITY_PAYOUT",
+    "timestamp": "2024-01-15T02:01:30Z",
+    "payload": {
+      "eventType": "JOB_PROGRESS",
+      "runId": "run-2024-0115-001",
+      "rowsProcessedSoFar": 50000,
+      "progressPercent": 33
+    }
+  },
+  {
+    "eventId": "550e8400-e29b-41d4-a716-446655440003",
+    "schemaVersion": "v1",
+    "jobType": "ANNUITY_PAYOUT",
+    "timestamp": "2024-01-15T02:03:00Z",
+    "payload": {
+      "eventType": "JOB_COMPLETED",
+      "runId": "run-2024-0115-001",
+      "rowsProcessed": 150000,
+      "durationSeconds": 182.5,
+      "errorCount": 0,
+      "sourceFile": "annuity_export_2024_0115.csv"
+    }
+  },
+  {
+    "eventId": "550e8400-e29b-41d4-a716-446655440004",
+    "schemaVersion": "v1",
+    "jobType": "CLAIMS_INGEST",
+    "timestamp": "2024-01-15T03:00:00Z",
+    "payload": {
+      "eventType": "JOB_FAILED",
+      "runId": "run-2024-0115-002",
+      "errorCode": "FILE_NOT_FOUND",
+      "errorMessage": "Source file claims_export_2024_0115.csv not found in S3",
+      "retryCount": 2
+    }
+  }
+]

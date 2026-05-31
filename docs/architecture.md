@@ -117,6 +117,49 @@ flowchart LR
 
 ---
 
+## BatchEvent Schema
+
+Every message published to `batch.events.v1` is a `BatchEvent` envelope. The `eventType` field inside `payload` is the Jackson polymorphic discriminator — it determines which sealed subtype is deserialized.
+
+### Event types
+
+| `eventType` | Payload record | Purpose |
+|---|---|---|
+| `JOB_STARTED` | `JobStarted` | Job kicked off; carries expected row count |
+| `JOB_PROGRESS` | `JobProgress` | Periodic heartbeat; carries rows processed so far and % complete |
+| `JOB_COMPLETED` | `JobCompleted` | **Primary anomaly signal** — carries final row count, duration, and error count |
+| `JOB_FAILED` | `JobFailed` | Terminal failure; carries error code and retry count |
+
+### `JOB_COMPLETED` — primary anomaly signal
+
+`JobCompleted` is the event the anomaly detector scores. `durationSeconds` and `errorCount` are the key features — a 5× duration spike or an error rate above baseline both trigger incident creation.
+
+```json
+{
+  "eventId": "550e8400-e29b-41d4-a716-446655440003",
+  "schemaVersion": "v1",
+  "jobType": "ANNUITY_PAYOUT",
+  "timestamp": "2024-01-15T02:03:00Z",
+  "payload": {
+    "eventType": "JOB_COMPLETED",
+    "runId": "run-2024-0115-001",
+    "rowsProcessed": 150000,
+    "durationSeconds": 182.5,
+    "errorCount": 0,
+    "sourceFile": "annuity_export_2024_0115.csv"
+  }
+}
+```
+
+### Schema evolution rules
+
+- `schemaVersion` is stamped on every message (`"v1"` currently).
+- Consumers set `FAIL_ON_UNKNOWN_PROPERTIES=false` — new fields added by producers are silently ignored.
+- Breaking changes (field removal, rename, type change) require a new topic version (`batch.events.v2`).
+- `src/test/resources/fixtures/batch-event-v1-sample.json` is the schema contract — a parsing failure there signals a breaking change.
+
+---
+
 ## Key Design Decisions
 
 | Decision | Rationale |
