@@ -11,10 +11,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class BatchEventDeserialisationTest {
+public class BatchEventDeserialisationTest {
 
-    // Mirrors Spring Boot's ObjectMapper defaults: JavaTimeModule for Instant,
-    // FAIL_ON_UNKNOWN_PROPERTIES=false to honour the schema evolution rule.
     private final ObjectMapper objectMapper = new ObjectMapper()
         .registerModule(new JavaTimeModule())
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
