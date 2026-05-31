@@ -15,6 +15,18 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Simulates events created by a batch program.
+ *
+ * <p>Different job type:
+ * {@code ./mvnw exec:java "-Dexec.args=--jobType=POLICY_RENEWAL --spring.profiles.active=local"}
+ *
+ * <p>Inject an anomaly (abnormal duration and error rates):
+ * {@code ./mvnw exec:java "-Dexec.args=--jobType=ANNUITY_PAYOUT --anomaly=true --spring.profiles.active=local"}
+ *
+ * <p>Publish multiple scenarios:
+ * {@code ./mvnw exec:java "-Dexec.args=--jobType=CLAIMS_INGEST --count=5 --spring.profiles.active=local"}
+ */
 @Component
 public class BatchSimulatorRunner implements CommandLineRunner {
 
@@ -23,14 +35,16 @@ public class BatchSimulatorRunner implements CommandLineRunner {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
     private final String topic;
-    private final JobScenarioFactory scenarioFactory = new JobScenarioFactory();
+    private final JobScenarioFactory scenarioFactory;
 
     public BatchSimulatorRunner(KafkaTemplate<String, String> kafkaTemplate,
                                 ObjectMapper objectMapper,
-                                @Value("${app.kafka.topics.batch-events}") String topic) {
-        this.kafkaTemplate = kafkaTemplate;
-        this.objectMapper  = objectMapper;
-        this.topic         = topic;
+                                @Value("${app.kafka.topics.batch-events}") String topic,
+                                JobScenarioFactory scenarioFactory) {
+        this.kafkaTemplate   = kafkaTemplate;
+        this.objectMapper    = objectMapper;
+        this.topic           = topic;
+        this.scenarioFactory = scenarioFactory;
     }
 
     public static void main(String[] args) {
@@ -44,7 +58,7 @@ public class BatchSimulatorRunner implements CommandLineRunner {
 
         JobType jobType = JobType.valueOf(jobTypeArg.toUpperCase());
         boolean anomaly = hasFlag(args, Constants.ARG_ANOMALY);
-        int count = Integer.parseInt(argOrDefault(args, Constants.ARG_COUNT, Constants.DEFAULT_SIMULATOR_COUNT));
+        int count       = Integer.parseInt(argOrDefault(args, Constants.ARG_COUNT, Constants.DEFAULT_SIMULATOR_COUNT));
 
         log.info("Simulator starting: jobType={} anomaly={} count={}", jobType, anomaly, count);
 
