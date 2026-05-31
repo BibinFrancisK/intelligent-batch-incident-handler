@@ -16,6 +16,9 @@ public final class Constants {
     public static final String EVENT_TYPE_JOB_COMPLETED = "JOB_COMPLETED";
     public static final String EVENT_TYPE_JOB_FAILED    = "JOB_FAILED";
 
+    // Kafka consumer group
+    public static final String KAFKA_CONSUMER_GROUP_ID = "incident-intelligence";
+
     // Kafka listener virtual-thread executor
     public static final String KAFKA_LISTENER_THREAD_PREFIX = "kafka-listener-";
 }
