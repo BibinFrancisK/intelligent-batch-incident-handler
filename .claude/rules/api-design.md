@@ -1,6 +1,6 @@
 # Domain and Event Design Rules
 
-- Source of truth: `CLAUDE.md` and `docs/EXECUTION_PLAN.md` § 6–10.
+- Source of truth: `CLAUDE.md`.
 
 ---
 
