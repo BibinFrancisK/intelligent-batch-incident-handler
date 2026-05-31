@@ -5,6 +5,8 @@ import io.batchintel.domain.events.BatchEvent;
 import io.batchintel.domain.metrics.JobType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.batchintel.utils.Constants;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -17,16 +19,18 @@ import java.util.List;
 public class BatchSimulatorRunner implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(BatchSimulatorRunner.class);
-    private static final String TOPIC = "batch.events.v1";
 
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
+    private final String topic;
     private final JobScenarioFactory scenarioFactory = new JobScenarioFactory();
 
     public BatchSimulatorRunner(KafkaTemplate<String, String> kafkaTemplate,
-                                ObjectMapper objectMapper) {
+                                ObjectMapper objectMapper,
+                                @Value("${app.kafka.topics.batch-events}") String topic) {
         this.kafkaTemplate = kafkaTemplate;
         this.objectMapper  = objectMapper;
+        this.topic         = topic;
     }
 
     public static void main(String[] args) {
@@ -35,12 +39,12 @@ public class BatchSimulatorRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        String jobTypeArg = arg(args, "--jobType");
-        if (jobTypeArg == null) return; // this to keep this function dormant during normal app startup
+        String jobTypeArg = arg(args, Constants.ARG_JOB_TYPE);
+        if (jobTypeArg == null) return; // dormant during normal app startup — only activates when --jobType is present
 
         JobType jobType = JobType.valueOf(jobTypeArg.toUpperCase());
-        boolean anomaly = hasFlag(args, "--anomaly=true");
-        int count = Integer.parseInt(argOrDefault(args, "--count", "1"));
+        boolean anomaly = hasFlag(args, Constants.ARG_ANOMALY);
+        int count = Integer.parseInt(argOrDefault(args, Constants.ARG_COUNT, Constants.DEFAULT_SIMULATOR_COUNT));
 
         log.info("Simulator starting: jobType={} anomaly={} count={}", jobType, anomaly, count);
 
@@ -52,7 +56,7 @@ public class BatchSimulatorRunner implements CommandLineRunner {
             for (BatchEvent event : scenario) {
                 String payload = objectMapper.writeValueAsString(event);
                 // jobType is the partition key — preserves per-stream ordering
-                kafkaTemplate.send(TOPIC, event.jobType().name(), payload);
+                kafkaTemplate.send(topic, event.jobType().name(), payload);
                 log.info("Published eventId={} type={}", event.eventId(),
                     event.payload().getClass().getSimpleName());
             }

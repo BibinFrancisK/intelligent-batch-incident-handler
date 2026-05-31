@@ -1,5 +1,6 @@
 package io.batchintel.config;
 
+import io.batchintel.utils.Constants;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
@@ -33,7 +34,7 @@ public class KafkaConfig {
             ConsumerFactory<String, String> consumerFactory) {
         var factory = new ConcurrentKafkaListenerContainerFactory<String, String>();
         factory.setConsumerFactory(consumerFactory);
-        var executor = new SimpleAsyncTaskExecutor("kafka-listener-");
+        var executor = new SimpleAsyncTaskExecutor(Constants.KAFKA_LISTENER_THREAD_PREFIX);
         executor.setVirtualThreads(true);
         factory.getContainerProperties().setListenerTaskExecutor(executor);
         return factory;

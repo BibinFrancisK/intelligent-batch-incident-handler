@@ -26,6 +26,11 @@ management:
     tags:
       application: ${spring.application.name}
 
+app:
+  kafka:
+    topics:
+      batch-events: batch.events.v1
+
 logging:
   level:
     io.batchintel: INFO
