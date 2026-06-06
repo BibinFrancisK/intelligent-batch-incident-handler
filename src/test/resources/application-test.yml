@@ -1,15 +1,27 @@
 spring:
   kafka:
     bootstrap-servers: localhost:9999
+    listener:
+      auto-startup: false   # prevent @KafkaListener from connecting during @SpringBootTest
   threads:
     virtual:
       enabled: false
+
+aws:
+  dynamodb:
+    endpoint: http://localhost:9999
+    region: us-east-1
+  credentials:
+    access-key-id: local
+    secret-access-key: local
 
 incident:
   llm:
     provider: noop
   notify:
     provider: noop
+  persistence:
+    idempotency: memory
 
 logging:
   level:

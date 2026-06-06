@@ -44,7 +44,8 @@ flowchart LR
     C1 -->|metrics| M1
     M1 --> A1
     A1 -->|anomaly?| L1
-    L1 <-->|prompt/response| LLM
+    L1 -->|prompt| G1
+    G1 -->|response| L1
     L1 --> T4
     L1 --> D1
     N1 --> SL
@@ -54,7 +55,8 @@ flowchart LR
     T2 --> C1
     C1 -.poison.-> T3
 
-    APP --> PR
+    C1 --> PR
+    M1 --> PR
     PR --> GR
 ```
 
@@ -69,7 +71,7 @@ sequenceDiagram
     participant K as Kafka
     participant App as Spring Boot App
     participant ML as AnomalyDetector
-    participant LLM as LangChain4j → Gemini
+    participant LLM as LangChain4j / Gemini
     participant DDB as DynamoDB
     participant Slack
 
@@ -157,6 +159,29 @@ Every message published to `batch.events.v1` is a `BatchEvent` envelope. The `ev
 - Consumers set `FAIL_ON_UNKNOWN_PROPERTIES=false` — new fields added by producers are silently ignored.
 - Breaking changes (field removal, rename, type change) require a new topic version (`batch.events.v2`).
 - `src/test/resources/fixtures/batch-event-v1-sample.json` is the schema contract — a parsing failure there signals a breaking change.
+
+---
+
+## Persistence & Metrics
+
+### DynamoDB tables
+
+| Table | Partition key | Purpose |
+|---|---|---|
+| `processed_events` | `eventId` (String) | Idempotency store — one row per processed event, 24h TTL |
+| `metrics_state` | `jobType` (String) | Cumulative rolling metrics per job type: count, sum of durations, error count, row count |
+| `incidents` | `incidentId` (String) | Persisted incident records produced by the anomaly + LLM pipeline |
+
+### Conditional-write dedupe
+
+`DynamoIdempotencyStore.isNew(eventId)` attempts a `PutItem` with `attribute_not_exists(eventId)`. If the write succeeds, the event is first-seen and proceeds through the pipeline. If DynamoDB throws `ConditionalCheckFailedException`, a duplicate is silently skipped. This is an atomic partition-level operation — no read-before-write race window.
+
+### Dual metrics path
+
+Two independent metrics mechanisms run in parallel:
+
+- **Durable aggregate (`metrics_state` table)** — `MetricsRepository.accumulate()` issues a DynamoDB `ADD` expression that increments `count`, `sumDurationSeconds`, `sumErrorCount`, and `sumRows` atomically server-side. These survive restarts and feed the Week 3 anomaly detector with historical baselines.
+- **In-process Micrometer** (`BatchMetrics`) — a `Counter` (events processed), a `Timer` (job duration → p95), and a per-`jobType` `Gauge` (live error rate) are registered on startup. Prometheus scrapes `/actuator/prometheus`; Grafana reads Prometheus. This path is ephemeral (resets on restart) but provides real-time dashboard visibility.
 
 ---
 

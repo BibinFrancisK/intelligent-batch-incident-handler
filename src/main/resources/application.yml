@@ -4,6 +4,10 @@ spring:
   threads:
     virtual:
       enabled: true
+  kafka:
+    listener:
+      observation-enabled: true   # creates a span per Kafka message so traceId/spanId appear in MDC
+
 management:
   endpoints:
     web:
@@ -20,6 +24,14 @@ app:
   kafka:
     topics:
       batch-events: batch.events.v1
+
+aws:
+  dynamodb:
+    endpoint: http://localhost:8000 #use the DynamoDB endpoint from AWS management console in production environment
+    region: us-east-1
+  credentials:
+    access-key-id: local #read from external source in production
+    secret-access-key: local #read from external source in production
 
 logging:
   level:

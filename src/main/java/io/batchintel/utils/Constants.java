@@ -21,4 +21,24 @@ public final class Constants {
 
     // Kafka listener virtual-thread executor
     public static final String KAFKA_LISTENER_THREAD_PREFIX = "kafka-listener-";
+
+    // DynamoDB table names
+    public static final String TABLE_PROCESSED_EVENTS = "processed_events";
+    public static final String TABLE_METRICS_STATE    = "metrics_state";
+    public static final String TABLE_INCIDENTS        = "incidents";
+
+    // processed_events attribute names
+    public static final String ATTR_EVENT_ID = "eventId";
+    public static final String ATTR_TTL      = "ttl";
+
+    // metrics_state attribute names
+    public static final String ATTR_JOB_TYPE             = "jobType";
+    public static final String ATTR_COUNT                = "count";
+    public static final String ATTR_SUM_DURATION_SECONDS = "sumDurationSeconds";
+    public static final String ATTR_SUM_ERROR_COUNT      = "sumErrorCount";
+    public static final String ATTR_SUM_ROWS             = "sumRows";
+    public static final String ATTR_UPDATED_AT           = "updatedAt";
+
+    // incidents attribute names
+    public static final String ATTR_INCIDENT_ID = "incidentId";
 }

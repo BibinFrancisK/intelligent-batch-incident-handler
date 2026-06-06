@@ -3,11 +3,12 @@ package io.batchintel.kafka;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.batchintel.domain.events.BatchEvent;
+import io.batchintel.metrics.MetricsExtractor;
 import io.batchintel.persistence.IdempotencyStore;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC; // Mapped Diagnostic Context — attaches key/value pairs to every log line this thread emits
+import org.slf4j.MDC;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -18,10 +19,14 @@ public class BatchEventConsumer {
 
     private final ObjectMapper objectMapper;
     private final IdempotencyStore idempotencyStore;
+    private final MetricsExtractor metricsExtractor;
 
-    public BatchEventConsumer(ObjectMapper objectMapper, IdempotencyStore idempotencyStore) {
+    public BatchEventConsumer(ObjectMapper objectMapper,
+                              IdempotencyStore idempotencyStore,
+                              MetricsExtractor metricsExtractor) {
         this.objectMapper     = objectMapper;
         this.idempotencyStore = idempotencyStore;
+        this.metricsExtractor = metricsExtractor;
     }
 
     @KafkaListener(topics = "${app.kafka.topics.batch-events}")
@@ -41,6 +46,7 @@ public class BatchEventConsumer {
                 log.info("Duplicate event skipped");
                 return;
             }
+            metricsExtractor.extract(event);
             log.info("Processing event type={} schemaVersion={}",
                 event.payload().getClass().getSimpleName(), event.schemaVersion());
         } finally {
