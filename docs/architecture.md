@@ -160,6 +160,29 @@ Every message published to `batch.events.v1` is a `BatchEvent` envelope. The `ev
 
 ---
 
+## Persistence & Metrics
+
+### DynamoDB tables
+
+| Table | Partition key | Purpose |
+|---|---|---|
+| `processed_events` | `eventId` (String) | Idempotency store — one row per processed event, 24h TTL |
+| `metrics_state` | `jobType` (String) | Cumulative rolling metrics per job type: count, sum of durations, error count, row count |
+| `incidents` | `incidentId` (String) | Persisted incident records produced by the anomaly + LLM pipeline |
+
+### Conditional-write dedupe
+
+`DynamoIdempotencyStore.isNew(eventId)` attempts a `PutItem` with `attribute_not_exists(eventId)`. If the write succeeds, the event is first-seen and proceeds through the pipeline. If DynamoDB throws `ConditionalCheckFailedException`, a duplicate is silently skipped. This is an atomic partition-level operation — no read-before-write race window.
+
+### Dual metrics path
+
+Two independent metrics mechanisms run in parallel:
+
+- **Durable aggregate (`metrics_state` table)** — `MetricsRepository.accumulate()` issues a DynamoDB `ADD` expression that increments `count`, `sumDurationSeconds`, `sumErrorCount`, and `sumRows` atomically server-side. These survive restarts and feed the Week 3 anomaly detector with historical baselines.
+- **In-process Micrometer** (`BatchMetrics`) — a `Counter` (events processed), a `Timer` (job duration → p95), and a per-`jobType` `Gauge` (live error rate) are registered on startup. Prometheus scrapes `/actuator/prometheus`; Grafana reads Prometheus. This path is ephemeral (resets on restart) but provides real-time dashboard visibility.
+
+---
+
 ## Key Design Decisions
 
 | Decision | Rationale |
