@@ -44,7 +44,8 @@ flowchart LR
     C1 -->|metrics| M1
     M1 --> A1
     A1 -->|anomaly?| L1
-    L1 <-->|prompt/response| LLM
+    L1 -->|prompt| G1
+    G1 -->|response| L1
     L1 --> T4
     L1 --> D1
     N1 --> SL
@@ -69,7 +70,7 @@ sequenceDiagram
     participant K as Kafka
     participant App as Spring Boot App
     participant ML as AnomalyDetector
-    participant LLM as LangChain4j → Gemini
+    participant LLM as LangChain4j / Gemini
     participant DDB as DynamoDB
     participant Slack
 
