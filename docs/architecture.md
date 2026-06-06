@@ -55,7 +55,8 @@ flowchart LR
     T2 --> C1
     C1 -.poison.-> T3
 
-    APP --> PR
+    C1 --> PR
+    M1 --> PR
     PR --> GR
 ```
 
