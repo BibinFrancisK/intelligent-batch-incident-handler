@@ -14,7 +14,6 @@ public class InMemoryIdempotencyStore implements IdempotencyStore {
 
     private static final Logger log = LoggerFactory.getLogger(InMemoryIdempotencyStore.class);
 
-    //replaced by DDB impl in production
     private final Set<String> seen = ConcurrentHashMap.newKeySet();
 
     @Override

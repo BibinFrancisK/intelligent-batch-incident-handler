@@ -49,13 +49,15 @@ public class MetricsRepository {
         }
 
         Map<String, AttributeValue> item = response.item();
+        AttributeValue updatedAtVal = item.get(Constants.ATTR_UPDATED_AT);
+        Instant updatedAt = updatedAtVal != null ? Instant.parse(updatedAtVal.s()) : Instant.EPOCH;
         return Optional.of(new RollingMetrics(
                 jobType,
                 longVal(item, Constants.ATTR_COUNT),
                 doubleVal(item, Constants.ATTR_SUM_DURATION_SECONDS),
                 longVal(item, Constants.ATTR_SUM_ERROR_COUNT),
                 longVal(item, Constants.ATTR_SUM_ROWS),
-                Instant.parse(item.get(Constants.ATTR_UPDATED_AT).s())
+                updatedAt
         ));
     }
 
