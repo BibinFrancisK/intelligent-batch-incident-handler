@@ -27,6 +27,7 @@ public class DynamoTableInitializer implements ApplicationRunner {
         DynamoTableUtils.createIfAbsent(ddb, Constants.TABLE_PROCESSED_EVENTS, Constants.ATTR_EVENT_ID);
         DynamoTableUtils.createIfAbsent(ddb, Constants.TABLE_METRICS_STATE,    Constants.ATTR_JOB_TYPE);
         DynamoTableUtils.createIfAbsent(ddb, Constants.TABLE_INCIDENTS,        Constants.ATTR_INCIDENT_ID);
+        DynamoTableUtils.createIfAbsent(ddb, Constants.TABLE_DLQ_EVENTS,       Constants.ATTR_DLQ_EVENT_ID);
         enableTtl(Constants.TABLE_PROCESSED_EVENTS, Constants.ATTR_TTL);
     }
 

@@ -11,8 +11,21 @@
         </encoder>
     </appender>
 
-    <root level="INFO">
-        <appender-ref ref="JSON"/>
-    </root>
+    <!-- default: INFO root, suppress noisy Spring Kafka internal logs -->
+    <springProfile name="!test">
+        <root level="INFO">
+            <appender-ref ref="JSON"/>
+        </root>
+        <logger name="io.batchintel" level="INFO"/>
+        <logger name="org.springframework.kafka" level="WARN"/>
+    </springProfile>
+
+    <!-- test: quiet root so test output is readable -->
+    <springProfile name="test">
+        <root level="WARN">
+            <appender-ref ref="JSON"/>
+        </root>
+        <logger name="io.batchintel" level="DEBUG"/>
+    </springProfile>
 
 </configuration>

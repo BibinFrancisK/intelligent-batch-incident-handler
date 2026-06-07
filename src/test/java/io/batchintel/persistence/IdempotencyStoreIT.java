@@ -18,7 +18,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Disabled("Testcontainers cannot connect to Docker Desktop on Windows")
+@Disabled("Testcontainers Java client cannot connect to Docker Desktop on Windows via named pipe — docker CLI works but the daemon API returns 400 via npipe; passes on Linux/macOS CI")
 @SpringBootTest
 @ActiveProfiles("test")
 @TestPropertySource(properties = "incident.persistence.idempotency=dynamo")

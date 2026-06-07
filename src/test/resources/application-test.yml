@@ -23,7 +23,3 @@ incident:
   persistence:
     idempotency: memory
 
-logging:
-  level:
-    root: WARN
-    io.batchintel: DEBUG

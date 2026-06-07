@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.*;
+import org.springframework.kafka.listener.DefaultErrorHandler;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -52,9 +53,11 @@ public class KafkaConfig {
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory(
-            ConsumerFactory<String, String> consumerFactory) {
+            ConsumerFactory<String, String> consumerFactory,
+            DefaultErrorHandler errorHandler) {
         var factory = new ConcurrentKafkaListenerContainerFactory<String, String>();
         factory.setConsumerFactory(consumerFactory);
+        factory.setCommonErrorHandler(errorHandler);
         var executor = new SimpleAsyncTaskExecutor(Constants.KAFKA_LISTENER_THREAD_PREFIX);
         executor.setVirtualThreads(true);
         factory.getContainerProperties().setListenerTaskExecutor(executor);
