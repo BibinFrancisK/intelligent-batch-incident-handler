@@ -6,7 +6,7 @@ spring:
       enabled: true
   kafka:
     listener:
-      observation-enabled: true   # creates a span per Kafka message so traceId/spanId appear in MDC
+      observation-enabled: true   #creates a span per Kafka message so traceId/spanId appear in MDC
 
 management:
   endpoints:
@@ -31,12 +31,12 @@ app:
 resilience4j:
   circuitbreaker:
     instances:
-      llm-provider:
-        slidingWindowSize: 10
-        failureRateThreshold: 50
-        waitDurationInOpenState: 30s
+      llm-provider: # name should match CircuitBreaker bean
+        slidingWindowSize: 10 # track the last 10 calls
+        failureRateThreshold: 50 # if ≥50% of those 10 calls fail → trip open
+        waitDurationInOpenState: 30s # stay open for 30 seconds (Gemini gets time to recover)
         permittedNumberOfCallsInHalfOpenState: 3
-        registerHealthIndicator: true
+        registerHealthIndicator: true # expose state at /actuator/health (OPEN/CLOSED/HALF_OPEN)
       slack-notifier:
         slidingWindowSize: 5
         failureRateThreshold: 60
@@ -50,8 +50,3 @@ aws:
   credentials:
     access-key-id: local #read from AWS Secrets Manager in production
     secret-access-key: local #read from AWS Secrets Manager in production
-
-logging:
-  level:
-    io.batchintel: INFO
-    org.springframework.kafka: WARN
