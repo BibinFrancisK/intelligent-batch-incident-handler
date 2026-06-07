@@ -41,4 +41,23 @@ public final class Constants {
 
     // incidents attribute names
     public static final String ATTR_INCIDENT_ID = "incidentId";
+
+    // Kafka topic names
+    public static final String TOPIC_BATCH_EVENTS       = "batch.events.v1";
+    public static final String TOPIC_BATCH_EVENTS_RETRY = "batch.events.v1.retry";
+    public static final String TOPIC_BATCH_EVENTS_DLQ   = "batch.events.v1.dlq";
+    public static final String TOPIC_INCIDENTS          = "incidents.v1";
+
+    // Header key used to track retry attempts across topic hops
+    public static final String HEADER_RETRY_ATTEMPT = "x-retry-attempt";
+
+    // DynamoDB table — dead-letter storage
+    public static final String TABLE_DLQ_EVENTS = "dlq_events";
+
+    // dlq_events attribute names
+    public static final String ATTR_DLQ_EVENT_ID    = "eventId";
+    public static final String ATTR_DLQ_RAW_PAYLOAD = "rawPayload";
+    public static final String ATTR_DLQ_ERROR        = "error";
+    public static final String ATTR_DLQ_RETRY_COUNT  = "retryCount";
+    public static final String ATTR_DLQ_FAILED_AT    = "failedAt";
 }

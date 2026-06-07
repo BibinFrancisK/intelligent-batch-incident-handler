@@ -23,15 +23,33 @@ management:
 app:
   kafka:
     topics:
-      batch-events: batch.events.v1
+      batch-events:       batch.events.v1
+      batch-events-retry: batch.events.v1.retry
+      batch-events-dlq:   batch.events.v1.dlq
+      incidents:          incidents.v1
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      llm-provider:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 3
+        registerHealthIndicator: true
+      slack-notifier:
+        slidingWindowSize: 5
+        failureRateThreshold: 60
+        waitDurationInOpenState: 20s
+        registerHealthIndicator: true
 
 aws:
   dynamodb:
     endpoint: http://localhost:8000 #use the DynamoDB endpoint from AWS management console in production environment
     region: us-east-1
   credentials:
-    access-key-id: local #read from external source in production
-    secret-access-key: local #read from external source in production
+    access-key-id: local #read from AWS Secrets Manager in production
+    secret-access-key: local #read from AWS Secrets Manager in production
 
 logging:
   level:
