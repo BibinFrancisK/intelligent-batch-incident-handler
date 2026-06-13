@@ -23,10 +23,10 @@ management:
 app:
   kafka:
     topics:
-      batch-events:       batch.events.v1
+      batch-events: batch.events.v1
       batch-events-retry: batch.events.v1.retry
-      batch-events-dlq:   batch.events.v1.dlq
-      incidents:          incidents.v1
+      batch-events-dlq: batch.events.v1.dlq
+      incidents: incidents.v1 #not creating retry and dlq topics due to low volume of messages
 
 resilience4j:
   circuitbreaker:
@@ -42,6 +42,16 @@ resilience4j:
         failureRateThreshold: 60
         waitDurationInOpenState: 20s
         registerHealthIndicator: true
+
+incident:
+  anomaly:
+    detector: ewma           # ewma | isolation-forest; ewma is the zero-dependency default
+    threshold: 3.5           # z-score threshold for EWMA; anomaly score (0–1) for Isolation Forest
+    ewma:
+      alpha: 0.2             # smoothing factor — higher = more weight on recent observations
+    isolation-forest:
+      trees: 100             # number of isolation trees; more = stable scores, higher memory
+      sample-size: 256       # sub-sample size per tree
 
 aws:
   dynamodb:

@@ -5,8 +5,12 @@ import io.batchintel.domain.events.JobCompleted;
 import io.batchintel.domain.events.JobFailed;
 import io.batchintel.domain.events.JobProgress;
 import io.batchintel.domain.events.JobStarted;
+import io.batchintel.domain.metrics.FeatureVector;
 import io.batchintel.persistence.MetricsRepository;
 import org.springframework.stereotype.Component;
+
+import java.time.ZoneOffset;
+import java.util.Optional;
 
 @Component
 public class MetricsExtractor {
@@ -19,23 +23,34 @@ public class MetricsExtractor {
         this.batchMetrics = batchMetrics;
     }
 
-    public void extract(BatchEvent event) {
-        // record every event type against the counter regardless of whether it folds into metrics_state
+    public Optional<FeatureVector> extract(BatchEvent event) {
         batchMetrics.recordProcessed(event.jobType(), event.payload().getClass().getSimpleName());
 
-        switch (event.payload()) {
+        return switch (event.payload()) {
             case JobCompleted c -> {
                 repository.accumulate(event.jobType(), c.durationSeconds(), c.errorCount(), c.rowsProcessed());
                 batchMetrics.recordDuration(event.jobType(), c.durationSeconds());
                 double rate = c.rowsProcessed() == 0 ? 0.0 : (double) c.errorCount() / c.rowsProcessed();
                 batchMetrics.setErrorRate(event.jobType(), rate);
+
+                var rolling = repository.find(event.jobType()).orElseThrow();
+                yield Optional.of(new FeatureVector(
+                    event.jobType(),
+                    c.durationSeconds(),
+                    rolling.meanDurationSeconds(),
+                    rolling.errorRate(),
+                    c.rowsProcessed(),
+                    event.timestamp().atZone(ZoneOffset.UTC).getHour(),
+                    event.timestamp().atZone(ZoneOffset.UTC).getDayOfWeek().getValue()
+                ));
             }
             case JobFailed ignored -> {
                 repository.accumulate(event.jobType(), 0.0, 1, 0);
                 batchMetrics.setErrorRate(event.jobType(), 1.0);
+                yield Optional.empty();
             }
-            case JobStarted ignored  -> { /* lifecycle marker — nothing to aggregate */ }
-            case JobProgress ignored -> { /* interim marker — nothing to aggregate */ }
-        }
+            case JobStarted ignored -> Optional.empty(); // lifecycle marker — nothing to aggregate
+            case JobProgress ignored -> Optional.empty(); // interim marker — nothing to aggregate
+        };
     }
 }

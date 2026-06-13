@@ -22,4 +22,6 @@ incident:
     provider: noop
   persistence:
     idempotency: memory
+  anomaly:
+    detector: ewma  # EWMA needs no external data; prevents ModelBootstrap from scanning DDB in tests
 
