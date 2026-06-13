@@ -62,21 +62,31 @@ public class BatchSimulatorRunner implements CommandLineRunner {
 
         log.info("Simulator starting: jobType={} anomaly={} count={}", jobType, anomaly, count);
 
-        for (int i = 0; i < count; i++) {
-            List<BatchEvent> scenario = anomaly
-                ? scenarioFactory.buildAnomalous(jobType)
-                : scenarioFactory.buildNormal(jobType);
-
-            for (BatchEvent event : scenario) {
-                String payload = objectMapper.writeValueAsString(event);
-                // jobType is the partition key — preserves per-stream ordering
-                kafkaTemplate.send(topic, event.jobType().name(), payload);
-                log.info("Published eventId={} type={}", event.eventId(),
-                    event.payload().getClass().getSimpleName());
+        if (anomaly) {
+            // EWMA state is in-memory and empty on every fresh JVM start.
+            // Publish warm-up normal runs first so sigma stabilizes before the spike arrives.
+            // Kafka partition key = jobType, so ordering is guaranteed — consumer sees warm-up before anomaly.
+            log.info("Warm-up: publishing {} normal scenario(s) to seed EWMA state before spike",
+                Constants.SIMULATOR_WARM_UP_RUNS);
+            for (int w = 0; w < Constants.SIMULATOR_WARM_UP_RUNS; w++) {
+                publish(scenarioFactory.buildNormal(jobType));
             }
         }
 
+        for (int i = 0; i < count; i++) {
+            publish(anomaly ? scenarioFactory.buildAnomalous(jobType) : scenarioFactory.buildNormal(jobType));
+        }
+
         log.info("Simulator finished: {} scenario(s) published", count);
+    }
+
+    private void publish(List<BatchEvent> scenario) throws Exception {
+        for (BatchEvent event : scenario) {
+            String payload = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send(topic, event.jobType().name(), payload);
+            log.info("Published eventId={} type={}", event.eventId(),
+                event.payload().getClass().getSimpleName());
+        }
     }
 
     private static String arg(String[] args, String name) {
