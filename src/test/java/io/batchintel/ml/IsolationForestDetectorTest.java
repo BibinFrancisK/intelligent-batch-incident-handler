@@ -13,8 +13,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class IsolationForestDetectorTest {
 
-    // Threshold 0.6: normal points score ≈ 0.5; an extreme spike in 5-dimensional space
-    // typically scores 0.65–0.72, giving enough margin above 0.6 to be reliable across random seeds.
     private static final AnomalyConfig CONFIG = new AnomalyConfig(
         "isolation-forest", 0.6,
         new AnomalyConfig.EwmaConfig(0.2),
@@ -24,11 +22,11 @@ class IsolationForestDetectorTest {
     private static double[][] normalTrainingData(int rows, Random rng) {
         double[][] data = new double[rows][5];
         for (int i = 0; i < rows; i++) {
-            data[i][0] = 10.0 + rng.nextGaussian() * 2;   // durationSeconds
+            data[i][0] = 10.0 + rng.nextGaussian() * 2; // durationSeconds
             data[i][1] = Math.max(0, rng.nextGaussian() * 0.005); // errorRate ≈ 0–1%
             data[i][2] = 1000 + rng.nextGaussian() * 100;  // rowCount
-            data[i][3] = rng.nextInt(24);                    // hourOfDay
-            data[i][4] = rng.nextInt(7) + 1;                // dayOfWeek
+            data[i][3] = rng.nextInt(24);  // hourOfDay
+            data[i][4] = rng.nextInt(7) + 1; // dayOfWeek
         }
         return data;
     }
@@ -41,8 +39,6 @@ class IsolationForestDetectorTest {
     @DisplayName("extreme duration spike scores above threshold after training")
     void detectsSpikeAfterTraining() {
         var detector = new IsolationForestDetector(CONFIG);
-        // Fresh random seed per repetition — confirms detection is robust to forest randomness.
-        // 500s spike is ~245 std-devs from the 10±2s training distribution; reliably isolated in few tree splits.
         detector.fit(normalTrainingData(300, new Random()));
 
         var result = detector.score(fv(500.0));
