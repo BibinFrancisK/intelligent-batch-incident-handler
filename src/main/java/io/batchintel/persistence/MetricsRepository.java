@@ -8,6 +8,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -47,18 +48,26 @@ public class MetricsRepository {
         if (!response.hasItem() || response.item().isEmpty()) {
             return Optional.empty();
         }
+        return Optional.of(toRollingMetrics(response.item()));
+    }
 
-        Map<String, AttributeValue> item = response.item();
-        AttributeValue updatedAtVal = item.get(Constants.ATTR_UPDATED_AT);
-        Instant updatedAt = updatedAtVal != null ? Instant.parse(updatedAtVal.s()) : Instant.EPOCH;
-        return Optional.of(new RollingMetrics(
+    public List<RollingMetrics> findAll() {
+        return ddb.scan(b -> b.tableName(Constants.TABLE_METRICS_STATE))
+                .items().stream()
+                .map(this::toRollingMetrics)
+                .toList();
+    }
+
+    private RollingMetrics toRollingMetrics(Map<String, AttributeValue> item) {
+        JobType        jobType   = JobType.valueOf(item.get(Constants.ATTR_JOB_TYPE).s());
+        AttributeValue updatedAt = item.get(Constants.ATTR_UPDATED_AT);
+        return new RollingMetrics(
                 jobType,
                 longVal(item, Constants.ATTR_COUNT),
                 doubleVal(item, Constants.ATTR_SUM_DURATION_SECONDS),
                 longVal(item, Constants.ATTR_SUM_ERROR_COUNT),
                 longVal(item, Constants.ATTR_SUM_ROWS),
-                updatedAt
-        ));
+                updatedAt != null ? Instant.parse(updatedAt.s()) : Instant.EPOCH);
     }
 
     private long longVal(Map<String, AttributeValue> item, String attr) {

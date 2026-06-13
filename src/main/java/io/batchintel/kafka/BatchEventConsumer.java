@@ -3,7 +3,9 @@ package io.batchintel.kafka;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.batchintel.domain.events.BatchEvent;
+import io.batchintel.domain.incidents.AnomalyScore;
 import io.batchintel.metrics.MetricsExtractor;
+import io.batchintel.ml.AnomalyDetector;
 import io.batchintel.persistence.IdempotencyStore;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
@@ -20,13 +22,16 @@ public class BatchEventConsumer {
     private final ObjectMapper objectMapper;
     private final IdempotencyStore idempotencyStore;
     private final MetricsExtractor metricsExtractor;
+    private final AnomalyDetector anomalyDetector;
 
     public BatchEventConsumer(ObjectMapper objectMapper,
                               IdempotencyStore idempotencyStore,
-                              MetricsExtractor metricsExtractor) {
-        this.objectMapper     = objectMapper;
+                              MetricsExtractor metricsExtractor,
+                              AnomalyDetector anomalyDetector) {
+        this.objectMapper = objectMapper;
         this.idempotencyStore = idempotencyStore;
         this.metricsExtractor = metricsExtractor;
+        this.anomalyDetector = anomalyDetector;
     }
 
     @KafkaListener(topics = "${app.kafka.topics.batch-events}")
@@ -46,9 +51,23 @@ public class BatchEventConsumer {
                 log.info("Duplicate event skipped");
                 return;
             }
-            metricsExtractor.extract(event);
-            log.info("Processing event type={} schemaVersion={}",
+
+            var featureVector = metricsExtractor.extract(event);
+            log.info("Processed event type={} schemaVersion={}",
                 event.payload().getClass().getSimpleName(), event.schemaVersion());
+
+            featureVector.ifPresent(fv -> {
+                AnomalyScore anomalyScore = anomalyDetector.score(fv);
+                log.debug("Anomaly score jobType={} score={} detector={}",
+                    fv.jobType(), anomalyScore.score(), anomalyScore.detectorName());
+
+                if (anomalyScore.anomalous()) {
+                    log.warn("Anomaly detected jobType={} score={} reason={} detector={}",
+                        fv.jobType(), anomalyScore.score(),
+                        anomalyScore.reason(), anomalyScore.detectorName());
+                    // TODO Week3Sun: if anomalous → persist incident + notify
+                }
+            });
         } finally {
             MDC.clear();
         }

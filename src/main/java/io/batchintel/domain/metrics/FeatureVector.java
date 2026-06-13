@@ -4,5 +4,8 @@ public record FeatureVector(
         JobType jobType,
         double  durationSeconds,
         double  rollingMeanDuration,
-        double  errorRate
+        double  errorRate,
+        long    rowCount,
+        int     hourOfDay,
+        int     dayOfWeek
 ) {}

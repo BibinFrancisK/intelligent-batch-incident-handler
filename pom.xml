@@ -115,6 +115,13 @@
             <version>2.2.0</version>
         </dependency>
 
+        <!-- ML — Smile for Isolation Forest anomaly detection; smile-math is a transitive dep -->
+        <dependency>
+            <groupId>com.github.haifengl</groupId>
+            <artifactId>smile-core</artifactId>
+            <version>3.1.1</version>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
