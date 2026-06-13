@@ -15,3 +15,5 @@ incident:
     provider: noop
   notify:
     provider: noop
+  anomaly:
+    detector: isolation-forest

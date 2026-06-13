@@ -22,7 +22,10 @@ docker compose -f docker/docker-compose.yml up -d
 ./mvnw -pl . -Dtest=EwmaAnomalyDetectorTest test
 
 # Inject an anomaly for end-to-end testing
+# -Dspring.profiles.active=local is required — exec:java is a plain JVM launch and does not
+# honor -Dspring-boot.run.profiles; without it spring.kafka.bootstrap-servers is unresolved
 ./mvnw exec:java -Dexec.mainClass="io.batchintel.simulator.BatchSimulatorRunner" \
+  -Dspring.profiles.active=local \
   -Dexec.args="--jobType=ANNUITY_PAYOUT --anomaly=true"
 
 # Check DLQ depth
