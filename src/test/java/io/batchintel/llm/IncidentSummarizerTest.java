@@ -18,13 +18,13 @@ class IncidentSummarizerTest {
     private IncidentSummarizer summarizer;
 
     private static final FeatureVector NORMAL_FV = new FeatureVector(
-            JobType.ANNUITY_PAYOUT, 120.0, 100.0, 0.01, 5000L, 10, 2);
+        JobType.ANNUITY_PAYOUT, 120.0, 100.0, 0.01, 5000L, 10, 2);
 
-    private static final AnomalyScore EWMA_HIGH_SCORE   = new AnomalyScore(7.5,  true, "z-score=7.5",  "ewma");
-    private static final AnomalyScore EWMA_MEDIUM_SCORE = new AnomalyScore(5.0,  true, "z-score=5.0",  "ewma");
-    private static final AnomalyScore EWMA_LOW_SCORE    = new AnomalyScore(3.8,  true, "z-score=3.8",  "ewma");
-    private static final AnomalyScore IF_HIGH_SCORE     = new AnomalyScore(0.9,  true, "if-score=0.9", "isolation-forest");
-    private static final AnomalyScore IF_MEDIUM_SCORE   = new AnomalyScore(0.7,  true, "if-score=0.7", "isolation-forest");
+    private static final AnomalyScore EWMA_HIGH_SCORE = new AnomalyScore(7.5, true, "z-score=7.5", "ewma");
+    private static final AnomalyScore EWMA_MEDIUM_SCORE = new AnomalyScore(5.0, true, "z-score=5.0", "ewma");
+    private static final AnomalyScore EWMA_LOW_SCORE = new AnomalyScore(3.8, true, "z-score=3.8", "ewma");
+    private static final AnomalyScore IF_HIGH_SCORE = new AnomalyScore(0.9, true, "if-score=0.9", "isolation-forest");
+    private static final AnomalyScore IF_MEDIUM_SCORE = new AnomalyScore(0.7, true, "if-score=0.7", "isolation-forest");
 
     @BeforeEach
     void setUp() {

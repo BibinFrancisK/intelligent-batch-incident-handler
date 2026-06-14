@@ -101,7 +101,7 @@ public final class SlackNotifier implements Notifier {
                 color,
                 escapeJson(summary),
                 escapeJson(likelyCause),
-                incident.incidentId(),
+                escapeJson(incident.incidentId()),
                 escapeJson(incident.llmProvider())
         );
     }

@@ -2,7 +2,6 @@ package io.batchintel.kafka;
 
 import io.batchintel.persistence.DynamoTableUtils;
 import io.batchintel.utils.Constants;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -33,20 +32,20 @@ import static org.awaitility.Awaitility.await;
 @SpringBootTest
 @ActiveProfiles("test")
 @TestPropertySource(properties = {
-        "incident.persistence.idempotency=dynamo",
-        "spring.kafka.listener.auto-startup=true"
+    "incident.persistence.idempotency=dynamo",
+    "spring.kafka.listener.auto-startup=true"
 })
 @Testcontainers
 class BatchEventConsumerIT {
 
     @Container
     static KafkaContainer kafka = new KafkaContainer(
-            DockerImageName.parse("confluentinc/cp-kafka:7.6.1"));
+        DockerImageName.parse("confluentinc/cp-kafka:7.6.1"));
 
     @Container
     static GenericContainer<?> ddb = new GenericContainer<>("amazon/dynamodb-local:2.5.2")
-            .withExposedPorts(8000)
-            .withCommand("-jar DynamoDBLocal.jar -inMemory -sharedDb");
+        .withExposedPorts(8000)
+        .withCommand("-jar DynamoDBLocal.jar -inMemory -sharedDb");
 
     @DynamicPropertySource
     static void props(DynamicPropertyRegistry r) {
@@ -78,13 +77,13 @@ class BatchEventConsumerIT {
 
         await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
             ScanResponse processed = dynamoDbClient.scan(ScanRequest.builder()
-                    .tableName(Constants.TABLE_PROCESSED_EVENTS).build());
+                .tableName(Constants.TABLE_PROCESSED_EVENTS).build());
             assertThat(processed.items()).anyMatch(item ->
-                    eventId.equals(item.get(Constants.ATTR_EVENT_ID).s()));
+                eventId.equals(item.get(Constants.ATTR_EVENT_ID).s()));
         });
 
         ScanResponse incidents = dynamoDbClient.scan(ScanRequest.builder()
-                .tableName(Constants.TABLE_INCIDENTS).build());
+            .tableName(Constants.TABLE_INCIDENTS).build());
         assertThat(incidents.items()).isEmpty();
     }
 
@@ -99,12 +98,12 @@ class BatchEventConsumerIT {
             // Consumer must still be alive — a second valid event must be processed
             String followUpId = UUID.randomUUID().toString();
             kafkaTemplate.send(Constants.TOPIC_BATCH_EVENTS, "ANNUITY_PAYOUT",
-                    buildCompletedEvent(followUpId, "ANNUITY_PAYOUT", 100.0, 0));
+                buildCompletedEvent(followUpId, "ANNUITY_PAYOUT", 100.0, 0));
 
             ScanResponse processed = dynamoDbClient.scan(ScanRequest.builder()
-                    .tableName(Constants.TABLE_PROCESSED_EVENTS).build());
+                .tableName(Constants.TABLE_PROCESSED_EVENTS).build());
             assertThat(processed.items()).anyMatch(item ->
-                    followUpId.equals(item.get(Constants.ATTR_EVENT_ID).s()));
+                followUpId.equals(item.get(Constants.ATTR_EVENT_ID).s()));
         });
     }
 
@@ -119,10 +118,10 @@ class BatchEventConsumerIT {
 
         await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
             ScanResponse processed = dynamoDbClient.scan(ScanRequest.builder()
-                    .tableName(Constants.TABLE_PROCESSED_EVENTS).build());
+                .tableName(Constants.TABLE_PROCESSED_EVENTS).build());
             long count = processed.items().stream()
-                    .filter(item -> eventId.equals(item.get(Constants.ATTR_EVENT_ID).s()))
-                    .count();
+                .filter(item -> eventId.equals(item.get(Constants.ATTR_EVENT_ID).s()))
+                .count();
             assertThat(count).isEqualTo(1);
         });
     }
@@ -130,20 +129,20 @@ class BatchEventConsumerIT {
     private static String buildCompletedEvent(String eventId, String jobType,
                                               double durationSeconds, int errorCount) {
         return """
-                {
-                  "eventId": "%s",
-                  "schemaVersion": "v1",
-                  "jobType": "%s",
-                  "timestamp": "2024-06-01T10:00:00Z",
-                  "payload": {
-                    "eventType": "JOB_COMPLETED",
-                    "runId": "run-test-001",
-                    "rowsProcessed": 10000,
-                    "durationSeconds": %.1f,
-                    "errorCount": %d,
-                    "sourceFile": "test.csv"
-                  }
-                }
-                """.formatted(eventId, jobType, durationSeconds, errorCount);
+            {
+              "eventId": "%s",
+              "schemaVersion": "v1",
+              "jobType": "%s",
+              "timestamp": "2024-06-01T10:00:00Z",
+              "payload": {
+                "eventType": "JOB_COMPLETED",
+                "runId": "run-test-001",
+                "rowsProcessed": 10000,
+                "durationSeconds": %.1f,
+                "errorCount": %d,
+                "sourceFile": "test.csv"
+              }
+            }
+            """.formatted(eventId, jobType, durationSeconds, errorCount);
     }
 }

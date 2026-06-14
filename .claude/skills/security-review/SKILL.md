@@ -18,7 +18,7 @@ Perform a targeted security review of pending changes on the current branch agai
 
 ## What This Skill Checks
 
-See `checklist.md` in this directory for the full itemised list. At a high level:
+See `checklist.md` in this directory for the full itemized list. At a high level:
 
 1. **Event deserialization safety** — `BatchEvent` JSON is deserialized with `FAIL_ON_UNKNOWN_PROPERTIES=false`; malformed events route to DLQ, never crash the consumer
 2. **Idempotency correctness** — DynamoDB conditional `PutItem` uses `attribute_not_exists(eventId)`; duplicates are silently skipped, not double-processed
@@ -33,7 +33,7 @@ See `checklist.md` in this directory for the full itemised list. At a high level
 
 ## What This Skill Does NOT Cover
 
-- Authentication / authorisation — explicitly out of scope
+- Authentication / authorization — explicitly out of scope
 - HTTPS / TLS — terminated at the load balancer in AWS; HTTP is acceptable locally
 - AWS IAM policies — covered by the CDK stack in `infra/cdk/`, not reviewed here
 - Grafana or Prometheus access control — admin/admin is acceptable for local dev only

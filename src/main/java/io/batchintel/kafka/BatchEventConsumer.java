@@ -48,15 +48,15 @@ public class BatchEventConsumer {
                               Notifier notifier,
                               KafkaTemplate<String, String> kafkaTemplate,
                               BatchMetrics batchMetrics) {
-        this.objectMapper        = objectMapper;
-        this.idempotencyStore    = idempotencyStore;
-        this.metricsExtractor    = metricsExtractor;
-        this.anomalyDetector     = anomalyDetector;
-        this.incidentSummarizer  = incidentSummarizer;
-        this.incidentRepository  = incidentRepository;
-        this.notifier            = notifier;
-        this.kafkaTemplate       = kafkaTemplate;
-        this.batchMetrics        = batchMetrics;
+        this.objectMapper = objectMapper;
+        this.idempotencyStore = idempotencyStore;
+        this.metricsExtractor = metricsExtractor;
+        this.anomalyDetector = anomalyDetector;
+        this.incidentSummarizer = incidentSummarizer;
+        this.incidentRepository = incidentRepository;
+        this.notifier = notifier;
+        this.kafkaTemplate = kafkaTemplate;
+        this.batchMetrics = batchMetrics;
     }
 
     @KafkaListener(topics = "${app.kafka.topics.batch-events}")
@@ -79,18 +79,18 @@ public class BatchEventConsumer {
 
             Optional<FeatureVector> featureVector = metricsExtractor.extract(event);
             log.info("Processed event type={} schemaVersion={}",
-                    event.payload().getClass().getSimpleName(), event.schemaVersion());
+                event.payload().getClass().getSimpleName(), event.schemaVersion());
 
             if (featureVector.isPresent()) {
                 FeatureVector fv = featureVector.get();
                 AnomalyScore anomalyScore = anomalyDetector.score(fv);
                 log.debug("Anomaly score jobType={} score={} detector={}",
-                        fv.jobType(), anomalyScore.score(), anomalyScore.detectorName());
+                    fv.jobType(), anomalyScore.score(), anomalyScore.detectorName());
 
                 if (anomalyScore.anomalous()) {
                     log.warn("Anomaly detected jobType={} score={} reason={} detector={}",
-                            fv.jobType(), anomalyScore.score(),
-                            anomalyScore.reason(), anomalyScore.detectorName());
+                        fv.jobType(), anomalyScore.score(),
+                        anomalyScore.reason(), anomalyScore.detectorName());
 
                     Incident incident = incidentSummarizer.summarize(fv, anomalyScore);
                     incidentRepository.save(incident);
@@ -102,8 +102,8 @@ public class BatchEventConsumer {
                     batchMetrics.recordIncidentDetected(incident.severity());
 
                     log.info("Incident persisted incidentId={} severity={} llmProvider={} llmUnavailable={}",
-                            incident.incidentId(), incident.severity(),
-                            incident.llmProvider(), incident.llmUnavailable());
+                        incident.incidentId(), incident.severity(),
+                        incident.llmProvider(), incident.llmUnavailable());
                 }
             }
         } finally {
