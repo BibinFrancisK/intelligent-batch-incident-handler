@@ -44,6 +44,10 @@ resilience4j:
         registerHealthIndicator: true
 
 incident:
+  llm:
+    provider: noop           # gemini | noop; set to gemini and export GEMINI_API_KEY to use live LLM
+  notify:
+    provider: noop           # slack | noop; set to slack and export SLACK_WEBHOOK_URL to enable alerts
   anomaly:
     detector: ewma           # ewma | isolation-forest; ewma is the zero-dependency default
     threshold: 3.5           # z-score threshold for EWMA; anomaly score (0–1) for Isolation Forest
@@ -53,10 +57,18 @@ incident:
       trees: 100             # number of isolation trees; more = stable scores, higher memory
       sample-size: 256       # sub-sample size per tree
 
+langchain4j:
+  google-ai-gemini:
+    api-key: ${GEMINI_API_KEY}
+    model-name: ${GEMINI_MODEL_NAME:gemini-flash-latest}
+    timeout: 3s
+    log-requests: false
+    log-responses: false
+
 aws:
   dynamodb:
-    endpoint: http://localhost:8000 #use the DynamoDB endpoint from AWS management console in production environment
-    region: us-east-1
+    endpoint: ${AWS_DYNAMODB_ENDPOINT}
+    region: ${AWS_REGION:us-east-1}
   credentials:
-    access-key-id: local #read from AWS Secrets Manager in production
-    secret-access-key: local #read from AWS Secrets Manager in production
+    access-key-id: ${AWS_ACCESS_KEY_ID}
+    secret-access-key: ${AWS_SECRET_ACCESS_KEY}

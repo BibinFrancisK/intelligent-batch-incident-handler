@@ -23,7 +23,7 @@
     /   IT   \       BatchEventConsumerIT, IdempotencyStoreIT
    /----------\
   /   Unit     \    EwmaAnomalyDetectorTest, IsolationForestDetectorTest,
- /--------------\   IncidentSummariserTest, IncidentFingerprintTest
+ /--------------\   IncidentSummarizerTest, IncidentFingerprintTest
 ```
 
 ---
@@ -35,7 +35,7 @@
 | `EwmaAnomalyDetector` | Unit | 90%+ — pure algorithm, deterministic |
 | `IsolationForestDetector` | Unit | 80%+ — synthetic spike scenarios |
 | `IncidentFingerprint` | Unit | 90%+ — dedupe correctness is critical |
-| `IncidentSummariser` | Unit (Noop) | 70%+ — mock LLM, test prompt building |
+| `IncidentSummarizer` | Unit (Noop) | 70%+ — mock LLM, test prompt building |
 | `BatchEventConsumer` | Integration | Happy path + poison message → DLQ |
 | `IdempotencyStore` | Integration | Duplicate `eventId` is a no-op |
 | `EndToEndFlowIT` | E2E | One full anomaly → incident → metric counter |
@@ -64,7 +64,7 @@ static void props(DynamicPropertyRegistry r) {
 - Spring Boot auto-configuration wiring — it works by design.
 - Gemini / Anthropic API responses — not deterministic; always use `NoopProvider` in tests.
 - Slack webhook delivery — always use `NoopNotifier` in tests.
-- DynamoDB Local internal behaviour — test your code, not Amazon's library.
+- DynamoDB Local internal behavior — test your code, not Amazon's library.
 
 ---
 
@@ -79,7 +79,7 @@ static void props(DynamicPropertyRegistry r) {
 ## Test Naming Convention
 
 - Test files: `<Subject>Test.java` (unit), `<Subject>IT.java` (integration/E2E).
-- Method names: plain English describing behaviour, not implementation.
+- Method names: plain English describing behavior, not implementation.
 - Use `@DisplayName` for non-obvious scenario descriptions.
 
 ```java
@@ -92,6 +92,6 @@ void detectsLatencyAnomaly() { ... }
 
 ## Schema Contract Test
 
-- `BatchEventDeserialisationTest` must assert that `src/test/resources/fixtures/batch-event-v1-sample.json`
-  deserialises without error after every schema change.
+- `BatchEventDeserializationTest` must assert that `src/test/resources/fixtures/batch-event-v1-sample.json`
+  deserializes without error after every schema change.
 - This is the canary for breaking schema evolution — a failure here means a backward-incompatible change.

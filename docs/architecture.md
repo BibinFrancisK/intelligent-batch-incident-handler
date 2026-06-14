@@ -19,7 +19,7 @@ flowchart LR
         C1["BatchEventConsumer\n(virtual threads)"]
         M1["MetricsExtractor"]
         A1["AnomalyDetector\n(Isolation Forest + EWMA)"]
-        L1["IncidentSummariser\n(LangChain4j)"]
+        L1["IncidentSummarizer\n(LangChain4j)"]
         N1["NotificationDispatcher"]
     end
 
@@ -81,7 +81,7 @@ sequenceDiagram
     App->>App: Update rolling metrics
     App->>ML: score(featureVector)
     ML-->>App: anomalyScore > threshold
-    App->>LLM: summarise(incidentContext)
+    App->>LLM: summarize(incidentContext)
     LLM-->>App: incidentSummary + likelyCause
     App->>DDB: PutItem(incident)
     App->>Slack: POST webhook
@@ -112,7 +112,7 @@ flowchart LR
 | `BatchEventConsumer` | At-least-once consumption; idempotency via DynamoDB conditional `PutItem`; routes failures to retry/DLQ |
 | `MetricsExtractor` | Aggregates rolling metrics per `jobType` (row count, duration, error rate) into `metrics_state` |
 | `AnomalyDetector` | Sealed interface — `EwmaAnomalyDetector` (baseline) or `IsolationForestDetector` (advanced), selected via config |
-| `IncidentSummariser` | Builds bounded context prompt → calls active `LlmProvider` → produces structured `IncidentSummary` |
+| `IncidentSummarizer` | Builds bounded context prompt → calls active `LlmProvider` → produces structured `IncidentSummary` |
 | `SlackNotifier` | Posts incident to Slack webhook; deduped by `IncidentFingerprint` |
 | DynamoDB | Stores `incidents`, `metrics_state`, `processed_events` (idempotency keys with TTL) |
 | Grafana | 6-panel dashboard: throughput, error rate, p95 duration, anomaly scores, incidents by severity, LLM latency |

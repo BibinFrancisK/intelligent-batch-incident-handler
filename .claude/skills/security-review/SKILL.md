@@ -10,7 +10,7 @@ Perform a targeted security review of pending changes on the current branch agai
 
 - Before opening a PR that touches `kafka/`, `llm/`, `persistence/`, or `notify/`
 - When adding or changing Kafka error handling, DLQ routing, or retry logic
-- When modifying `IncidentSummariser`, prompt templates, or LLM provider wiring
+- When modifying `IncidentSummarizer`, prompt templates, or LLM provider wiring
 - When changing how secrets (`GEMINI_API_KEY`, `SLACK_WEBHOOK_URL`) are read or used
 - When modifying DynamoDB write paths or idempotency logic
 
@@ -22,7 +22,7 @@ See `checklist.md` in this directory for the full itemised list. At a high level
 
 1. **Event deserialization safety** — `BatchEvent` JSON is deserialized with `FAIL_ON_UNKNOWN_PROPERTIES=false`; malformed events route to DLQ, never crash the consumer
 2. **Idempotency correctness** — DynamoDB conditional `PutItem` uses `attribute_not_exists(eventId)`; duplicates are silently skipped, not double-processed
-3. **LLM prompt injection** — incident context passed to the LLM is bounded and sanitised; no raw event payload strings are interpolated into the system prompt
+3. **LLM prompt injection** — incident context passed to the LLM is bounded and sanitized; no raw event payload strings are interpolated into the system prompt
 4. **Secrets handling** — `GEMINI_API_KEY` and `SLACK_WEBHOOK_URL` are read from environment variables only; never logged, hardcoded, or returned in responses
 5. **Circuit breaker coverage** — LLM and Slack calls are wrapped in Resilience4j circuit breakers; a provider outage must not block incident persistence
 6. **DLQ safety** — poison messages land in `batch.events.v1.dlq` after max retries; the DLQ consumer never re-throws in a way that causes infinite reprocessing
@@ -46,7 +46,7 @@ See `checklist.md` in this directory for the full itemised list. At a high level
 2. Run `git diff main...HEAD --name-only` to identify changed files
 3. Work through `checklist.md` item by item against the diff
 4. Report each finding with: file, line, risk level (LOW / MEDIUM / HIGH), and recommended fix
-5. If all items pass, confirm clean and summarise
+5. If all items pass, confirm clean and summarize
 
 ---
 

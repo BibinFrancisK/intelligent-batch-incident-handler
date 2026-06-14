@@ -39,7 +39,7 @@ class EwmaAnomalyDetectorTest {
     }
 
     @Test
-    @DisplayName("normal variance within ±1s does not trigger anomaly once sigma has stabilised")
+    @DisplayName("normal variance within ±1s does not trigger anomaly once sigma has stabilized")
     void normalVarianceIsNotAnomaly() {
         var detector = new EwmaAnomalyDetector(CONFIG);
         var rng = new Random(42);

@@ -34,7 +34,7 @@ flowchart LR
         C1["BatchEventConsumer\n(virtual threads)"]
         M1["MetricsExtractor"]
         A1["AnomalyDetector\n(Isolation Forest + EWMA)"]
-        L1["IncidentSummariser\n(LangChain4j)"]
+        L1["IncidentSummarizer\n(LangChain4j)"]
         N1["NotificationDispatcher"]
     end
 
