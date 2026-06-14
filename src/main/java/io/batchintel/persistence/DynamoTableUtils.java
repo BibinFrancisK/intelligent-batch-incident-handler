@@ -10,13 +10,13 @@ import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
-class DynamoTableUtils {
+public class DynamoTableUtils {
 
     private static final Logger log = LoggerFactory.getLogger(DynamoTableUtils.class);
 
     private DynamoTableUtils() {}
 
-    static void createIfAbsent(DynamoDbClient ddb, String table, String pk) {
+    public static void createIfAbsent(DynamoDbClient ddb, String table, String pk) {
         if (exists(ddb, table)) {
             log.info("Table {} already present", table);
             return;
@@ -36,7 +36,7 @@ class DynamoTableUtils {
         log.info("Created table {}", table);
     }
 
-    static boolean exists(DynamoDbClient ddb, String table) {
+    public static boolean exists(DynamoDbClient ddb, String table) {
         try {
             ddb.describeTable(b -> b.tableName(table));
             return true;

@@ -42,7 +42,18 @@ public final class Constants {
     public static final String ATTR_UPDATED_AT = "updatedAt";
 
     // incidents attribute names
-    public static final String ATTR_INCIDENT_ID = "incidentId";
+    public static final String ATTR_INCIDENT_ID         = "incidentId";
+    public static final String ATTR_SCHEMA_VERSION      = "schemaVersion";
+    public static final String ATTR_ANOMALY_SCORE       = "anomalyScore";
+    public static final String ATTR_DETECTOR_NAME       = "detectorName";
+    public static final String ATTR_FINGERPRINT         = "fingerprint";
+    public static final String ATTR_SEVERITY            = "severity";
+    public static final String ATTR_SUMMARY             = "summary";
+    public static final String ATTR_LIKELY_CAUSE        = "likelyCause";
+    public static final String ATTR_SUGGESTED_ACTIONS   = "suggestedActions";
+    public static final String ATTR_LLM_PROVIDER        = "llmProvider";
+    public static final String ATTR_LLM_UNAVAILABLE     = "llmUnavailable";
+    public static final String ATTR_DETECTED_AT         = "detectedAt";
 
     // Kafka topic names
     public static final String TOPIC_BATCH_EVENTS = "batch.events.v1";

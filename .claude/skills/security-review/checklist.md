@@ -80,5 +80,5 @@ Use this checklist when reviewing any PR. Mark each item PASS / FAIL / N/A with 
 | Level | Description |
 |-------|-------------|
 | HIGH | Could lead to data loss, prompt injection, secret leakage, or uncontrolled LLM spend |
-| MEDIUM | Could lead to double-processing, alert spam, or unexpected consumer behaviour |
+| MEDIUM | Could lead to double-processing, alert spam, or unexpected consumer behavior |
 | LOW | Minor hygiene issue; no immediate exploitability |

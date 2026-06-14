@@ -1,6 +1,6 @@
 # Anomaly Detection Design
 
-This document covers the feature engineering, algorithm design, cold-start behaviour, and threshold tuning for the two anomaly detectors in `incident-intelligence-service`.
+This document covers the feature engineering, algorithm design, cold-start behavior, and threshold tuning for the two anomaly detectors in `incident-intelligence-service`.
 
 ---
 
@@ -84,7 +84,7 @@ Periodic online retraining (e.g. nightly re-fit from the last 7 days of complete
 
 ---
 
-## Cold-Start Behaviour and Fallback Chain
+## Cold-Start Behavior and Fallback Chain
 
 ```
 App starts

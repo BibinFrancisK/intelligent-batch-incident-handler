@@ -1,5 +1,6 @@
 package io.batchintel.metrics;
 
+import io.batchintel.domain.incidents.Incident;
 import io.batchintel.domain.metrics.JobType;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -37,5 +38,9 @@ public class BatchMetrics {
 
     public void setErrorRate(JobType jt, double rate) {
         errorRates.put(jt, rate);
+    }
+
+    public void recordIncidentDetected(Incident.Severity severity) {
+        registry.counter("incidents.detected", "severity", severity.name()).increment();
     }
 }

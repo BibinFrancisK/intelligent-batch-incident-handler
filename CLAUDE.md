@@ -54,7 +54,7 @@ BatchSimulatorRunner → Kafka (batch.events.v1)
   → BatchEventConsumer (virtual threads, idempotency via DDB conditional PutItem)
   → MetricsExtractor (rolling metrics per jobType → metrics_state in DDB)
   → AnomalyDetector (EWMA z-score or Isolation Forest, sealed interface)
-  → IncidentSummariser (LangChain4j → Gemini; circuit-breaker via Resilience4j)
+  → IncidentSummarizer (LangChain4j → Gemini; circuit-breaker via Resilience4j)
   → SlackNotifier + DDB incidents table + incidents.v1 topic
 ```
 
@@ -70,7 +70,7 @@ BatchSimulatorRunner → Kafka (batch.events.v1)
 | `kafka/` | Consumer, DLQ consumer, error handler config |
 | `persistence/` | `IdempotencyStore` interface + DynamoDB impl; repositories |
 | `ml/` | Sealed `AnomalyDetector` interface; `EwmaAnomalyDetector`; `IsolationForestDetector` |
-| `llm/` | Sealed `LlmProvider` interface; `GeminiProvider`, `NoopProvider`, `IncidentSummariser` |
+| `llm/` | Sealed `LlmProvider` interface; `GeminiProvider`, `NoopProvider`, `IncidentSummarizer` |
 | `notify/` | Sealed `Notifier` interface; `SlackNotifier`, `NoopNotifier` |
 | `simulator/` | `BatchSimulatorRunner` (CommandLineRunner), `AnomalyInjector` |
 | `config/` | Kafka, DynamoDB, virtual threads, Resilience4j, observability configs |
@@ -97,7 +97,7 @@ BatchSimulatorRunner → Kafka (batch.events.v1)
 
 ## Testing
 
-- **Unit tests**: detectors, summariser, fingerprint, schema fixture (`src/test/resources/fixtures/batch-event-v1-sample.json`)
+- **Unit tests**: detectors, summarizer, fingerprint, schema fixture (`src/test/resources/fixtures/batch-event-v1-sample.json`)
 - **Integration tests**: `@Testcontainers` with `KafkaContainer` + `GenericContainer` (DynamoDB Local); `@DynamicPropertySource` wires bootstrap servers and DDB endpoint
 - **E2E**: `EndToEndFlowIT` — anomaly inject → incident in DDB → `incidents.detected` counter > 0
 - **`NoopProvider`** used for all tests — zero LLM API calls in CI; `NoopNotifier` for Slack
