@@ -6,7 +6,7 @@
   "time": { "from": "now-30m", "to": "now" },
   "timepicker": {},
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "panels": [
     {
       "id": 1,
@@ -35,7 +35,7 @@
     },
     {
       "id": 2,
-      "title": "Error Rate by Job",
+      "title": "Error Rate + DLQ",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -43,15 +43,20 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "batch_job_error_rate{application=\"incident-intelligence-service\"}",
-          "legendFormat": "{{jobType}}",
+          "legendFormat": "error rate {{jobType}}",
           "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "rate(kafka_consumer_fetch_manager_records_consumed_total{topic=\"batch.events.v1.dlq\"}[1m])",
+          "legendFormat": "DLQ rate",
+          "refId": "B"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
           "min": 0,
-          "max": 1,
           "custom": { "lineWidth": 2, "fillOpacity": 10 },
           "thresholds": {
             "mode": "absolute",
@@ -95,16 +100,64 @@
     },
     {
       "id": 4,
-      "title": "DLQ Message Count",
-      "type": "stat",
+      "title": "Anomaly Score by Job",
+      "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum(kafka_consumer_fetch_manager_records_consumed_total{topic=\"batch.events.v1.dlq\"})",
-          "legendFormat": "Total",
+          "expr": "anomaly_score_value{application=\"incident-intelligence-service\"}",
+          "legendFormat": "{{jobType}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 3.5 },
+              { "color": "orange", "value": 4.0 },
+              { "color": "red", "value": 6.0 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] },
+        "tooltip": { "mode": "multi" }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Incidents by Severity",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum(increase(incidents_detected_total{application=\"incident-intelligence-service\",severity=\"HIGH\"}[30m]))",
+          "legendFormat": "HIGH",
           "refId": "A",
+          "instant": true
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum(increase(incidents_detected_total{application=\"incident-intelligence-service\",severity=\"MEDIUM\"}[30m]))",
+          "legendFormat": "MEDIUM",
+          "refId": "B",
+          "instant": true
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum(increase(incidents_detected_total{application=\"incident-intelligence-service\",severity=\"LOW\"}[30m]))",
+          "legendFormat": "LOW",
+          "refId": "C",
           "instant": true
         }
       ],
@@ -116,17 +169,61 @@
             "steps": [
               { "color": "green", "value": null },
               { "color": "yellow", "value": 1 },
-              { "color": "red", "value": 10 }
+              { "color": "red", "value": 3 }
             ]
           }
-        }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "HIGH" },   "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] },
+          { "matcher": { "id": "byName", "options": "MEDIUM" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }] },
+          { "matcher": { "id": "byName", "options": "LOW" },    "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }] }
+        ]
       },
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"] },
         "colorMode": "background",
         "graphMode": "none",
         "textMode": "auto",
-        "orientation": "auto"
+        "orientation": "horizontal"
+      }
+    },
+    {
+      "id": 6,
+      "title": "LLM Summarization Latency",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "rate(incident_summarize_seconds_sum{application=\"incident-intelligence-service\"}[1m]) / rate(incident_summarize_seconds_count{application=\"incident-intelligence-service\"}[1m])",
+          "legendFormat": "avg latency",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "incident_summarize_seconds_max{application=\"incident-intelligence-service\"}",
+          "legendFormat": "max latency",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1.0 },
+              { "color": "red", "value": 3.0 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] },
+        "tooltip": { "mode": "multi" }
       }
     }
   ]

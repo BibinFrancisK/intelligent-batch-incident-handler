@@ -39,8 +39,11 @@ docker exec kafka kafka-console-consumer --bootstrap-server localhost:9092 \
 # Scan DynamoDB incidents table
 aws dynamodb scan --table-name incidents --endpoint-url http://localhost:8000
 
-# AWS CDK — synth only, never deploy
-cd infra/cdk && npm install && npx cdk synth
+# Terraform — provision AWS infra (EC2 + DynamoDB)
+cd infra/terraform && terraform init && terraform apply -var="environment=demo"
+
+# Terraform — destroy all AWS resources after testing
+cd infra/terraform && terraform destroy -var="environment=demo"
 ```
 
 ## Architecture
@@ -81,9 +84,9 @@ BatchSimulatorRunner → Kafka (batch.events.v1)
 - **Virtual threads** for the Kafka consumer executor — IO-bound workload; poll loop stays on platform thread (safe).
 - **Dual anomaly detectors** — EWMA z-score is the always-available baseline (zero deps, warm on startup); Isolation Forest (Smile library) layers on top behind the sealed interface. Both are explainable, which matters for incident response.
 - **LLM is out of the critical path** — anomaly persists to DDB and Slack fires even if the LLM circuit-breaker is open; incident written with `summary=null` tagged `llm_unavailable`.
-- **DynamoDB Local in `-inMemory` mode** for local/CI; matches the AWS CDK stack in `infra/cdk/`. No Postgres to avoid schema migration complexity at this scope.
+- **DynamoDB Local in `-inMemory` mode** for local/CI; matches the Terraform stack in `infra/terraform/`. No Postgres to avoid schema migration complexity at this scope.
 - **KRaft Kafka (no Zookeeper)** — reduces operational footprint and memory overhead.
-- **`cdk synth` only, never `cdk deploy`** — CDK code in `infra/cdk/` (TypeScript) defines Lambda + DynamoDB + EventBridge; kept as IaC reference without incurring AWS costs.
+- **Terraform deploys EC2 + DynamoDB for demo; always `terraform destroy` after testing** — EC2 t3.micro runs Docker Compose (Kafka + Prometheus + Grafana) + Spring Boot app; DynamoDB tables are real AWS (free tier). Lambda is not used — it is incompatible with a long-running Kafka consumer.
 
 ## Infra RAM budget (Docker Compose)
 

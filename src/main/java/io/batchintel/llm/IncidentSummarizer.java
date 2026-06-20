@@ -5,6 +5,7 @@ import io.batchintel.domain.incidents.AnomalyScore;
 import io.batchintel.domain.incidents.IncidentFingerprint;
 import io.batchintel.domain.metrics.FeatureVector;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,6 +29,7 @@ public class IncidentSummarizer {
         this.circuitBreaker = circuitBreaker;
     }
 
+    @Observed(name = "incident.summarize", contextualName = "llm.summarize")
     public Incident summarize(FeatureVector fv, AnomalyScore score) {
         IncidentContext ctx = buildContext(fv, score);
         Incident.Severity severity = deriveSeverity(score);

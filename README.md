@@ -2,6 +2,7 @@
 
 > Event-driven anomaly detection and AI-generated incident summaries for batch workloads.
 
+[![CI](https://github.com/BibinFrancisK/intelligent-batch-incident-handler/actions/workflows/ci.yml/badge.svg)](https://github.com/BibinFrancisK/intelligent-batch-incident-handler/actions/workflows/ci.yml)
 ![Java](https://img.shields.io/badge/Java-21-blue)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3-brightgreen)
 ![Kafka](https://img.shields.io/badge/Apache%20Kafka-KRaft-black)
@@ -126,7 +127,7 @@ docker compose -f docker/docker-compose.yml up -d
 | AI / LLM | LangChain4j → Gemini 1.5 Flash (pluggable via sealed interface) |
 | Resilience | Resilience4j circuit breakers, rate limiters |
 | Observability | Micrometer, Prometheus, Grafana, OpenTelemetry (log-correlated traces) |
-| Infrastructure as Code | AWS CDK (TypeScript), Docker Compose |
+| Infrastructure as Code | Terraform (HCL), Docker Compose |
 | Testing | JUnit 5, Testcontainers (Kafka + DynamoDB Local), Spring Boot Test |
 
 ---
@@ -161,4 +162,4 @@ Notable choices:
 - Anthropic provider wired behind the same `LlmProvider` sealed interface
 - DLQ replay CLI tool
 - GitHub Actions CI pipeline (build + test + container image → GHCR)
-- Real AWS deployment via CDK (`infra/cdk/`) against a free-tier account
+- Real AWS deployment via Terraform (`infra/terraform/`) against a free-tier account

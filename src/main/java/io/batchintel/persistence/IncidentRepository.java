@@ -2,6 +2,7 @@ package io.batchintel.persistence;
 
 import io.batchintel.domain.incidents.Incident;
 import io.batchintel.utils.Constants;
+import io.micrometer.observation.annotation.Observed;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -18,6 +19,7 @@ public class IncidentRepository {
         this.ddb = ddb;
     }
 
+    @Observed(name = "incident.repository.save", contextualName = "ddb.save")
     public void save(Incident incident) {
         ddb.putItem(b -> b
                 .tableName(Constants.TABLE_INCIDENTS)

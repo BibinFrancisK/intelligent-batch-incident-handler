@@ -8,8 +8,8 @@ import io.batchintel.simulator.JobScenarioFactory;
 import io.batchintel.utils.Constants;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-@Disabled("Testcontainers Java client cannot connect to Docker Desktop on Windows via named pipe — docker CLI works but the daemon API returns 400 via npipe; passes on Linux/macOS CI")
+@Tag("integration")
 @SpringBootTest
 @ActiveProfiles("test")
 @TestPropertySource(properties = {

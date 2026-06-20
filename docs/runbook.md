@@ -1,6 +1,108 @@
 # Runbook — incident-intelligence-service
 
-Operational reference for local dev and CI recovery. Assumes Docker Compose infra is running (`docker compose -f docker/docker-compose.yml up -d`).
+Operational reference for local dev, AWS demo deployment, and CI recovery.
+
+---
+
+## AWS Demo Deployment
+
+> **Cost reminder:** EC2 t3.micro accrues ~$0.01/hr. Run `terraform destroy` as soon as testing is complete.
+
+### Prerequisites
+
+```bash
+# AWS credentials
+export AWS_ACCESS_KEY_ID=<your-key>
+export AWS_SECRET_ACCESS_KEY=<your-secret>
+export AWS_DEFAULT_REGION=us-east-1
+
+# Local SSH key pair (create if missing)
+ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N ""
+```
+
+### Deploy
+
+```bash
+cd infra/terraform
+terraform init
+terraform apply -var="environment=demo"
+# Type "yes" at the prompt.
+# Wait ~90 seconds for EC2 user-data bootstrap to complete.
+
+EC2_IP=$(terraform output -raw ec2_public_ip)
+echo "EC2: $EC2_IP"
+```
+
+### Configure and start the app on EC2
+
+```bash
+# Copy the project to EC2
+scp -r ../../ ec2-user@$EC2_IP:~/intelligent-batch-incident-handler
+
+# SSH in
+ssh ec2-user@$EC2_IP
+
+# Inside EC2:
+cd ~/intelligent-batch-incident-handler
+export GEMINI_API_KEY=<your-key>
+export SLACK_WEBHOOK_URL=<your-webhook>
+export AWS_DEFAULT_REGION=us-east-1
+
+# Start Kafka, Prometheus, Grafana
+docker-compose -f docker/docker-compose.yml up -d kafka prometheus grafana
+
+# Start the Spring Boot app (aws profile disables DynamoDB Local endpoint)
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local,aws
+```
+
+### Test on AWS
+
+Run from your local machine (in a second terminal):
+
+```bash
+EC2_IP=$(cd infra/terraform && terraform output -raw ec2_public_ip)
+
+# Health check
+curl -s http://$EC2_IP:8080/actuator/health | grep '"status":"UP"'
+
+# Warm-up (run 5 times)
+./mvnw exec:java -Dexec.mainClass="io.batchintel.simulator.BatchSimulatorRunner" \
+  -Dspring.profiles.active=local \
+  -Dexec.args="--jobType=ANNUITY_PAYOUT"
+
+# Inject anomaly
+./mvnw exec:java -Dexec.mainClass="io.batchintel.simulator.BatchSimulatorRunner" \
+  -Dspring.profiles.active=local \
+  -Dexec.args="--jobType=ANNUITY_PAYOUT --anomaly=true"
+
+# Verify incident in real AWS DynamoDB
+aws dynamodb scan --table-name demo-incidents --region us-east-1
+
+# Verify Prometheus counter
+curl -s http://$EC2_IP:8080/actuator/prometheus | grep incidents_detected
+
+# Open Grafana
+echo "http://$EC2_IP:3000  (admin/admin)"
+```
+
+### Destroy
+
+```bash
+# Exit the EC2 SSH session first, then from your local machine:
+cd infra/terraform
+terraform destroy -var="environment=demo"
+# Type "yes" at the prompt.
+
+# Verify EC2 is gone
+curl --connect-timeout 5 http://$EC2_IP:8080/actuator/health  # must time out
+
+# Verify DynamoDB tables are gone
+aws dynamodb list-tables --region us-east-1  # demo-incidents must not appear
+```
+
+---
+
+Assumes Docker Compose infra is running locally (`docker compose -f docker/docker-compose.yml up -d`).
 
 ---
 

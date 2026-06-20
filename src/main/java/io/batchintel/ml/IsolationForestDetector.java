@@ -3,6 +3,7 @@ package io.batchintel.ml;
 import io.batchintel.config.AnomalyConfig;
 import io.batchintel.domain.incidents.AnomalyScore;
 import io.batchintel.domain.metrics.FeatureVector;
+import io.micrometer.observation.annotation.Observed;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import smile.anomaly.IsolationForest;
@@ -16,7 +17,7 @@ import java.util.Properties;
 
 @Component
 @ConditionalOnProperty(name = "incident.anomaly.detector", havingValue = "isolation-forest")
-public final class IsolationForestDetector implements AnomalyDetector {
+public non-sealed class IsolationForestDetector implements AnomalyDetector {
 
     private final int ntrees;
     private final double threshold;
@@ -36,6 +37,7 @@ public final class IsolationForestDetector implements AnomalyDetector {
         this.model = IsolationForest.fit(data, props);
     }
 
+    @Observed(name = "anomaly.score", contextualName = "isolation-forest.score")
     @Override
     public AnomalyScore score(FeatureVector vector) {
         if (model == null) {

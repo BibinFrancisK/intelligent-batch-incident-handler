@@ -84,6 +84,7 @@ public class BatchEventConsumer {
             if (featureVector.isPresent()) {
                 FeatureVector fv = featureVector.get();
                 AnomalyScore anomalyScore = anomalyDetector.score(fv);
+                batchMetrics.recordAnomalyScore(fv.jobType(), anomalyScore.score());
                 log.debug("Anomaly score jobType={} score={} detector={}",
                     fv.jobType(), anomalyScore.score(), anomalyScore.detectorName());
 
