@@ -94,7 +94,8 @@ class EndToEndFlowIT {
         // inject a single anomalous scenario — duration spiked 5× the mean
         publish(scenarioFactory.buildAnomalous(TEST_JOB));
 
-        // wait for the incident to appear in DynamoDB
+        // wait for the incident in DynamoDB AND the Micrometer counter — both inside the
+        // await so Awaitility retries until the consumer thread completes the full flow
         await().atMost(30, TimeUnit.SECONDS).untilAsserted(() -> {
             ScanResponse incidents = dynamoDbClient.scan(ScanRequest.builder()
                     .tableName(Constants.TABLE_INCIDENTS).build());
@@ -105,14 +106,13 @@ class EndToEndFlowIT {
             assertThat(incident).containsKey(Constants.ATTR_SEVERITY);
             assertThat(incident).containsKey(Constants.ATTR_DETECTOR_NAME);
             assertThat(incident.get(Constants.ATTR_JOB_TYPE).s()).isEqualTo(TEST_JOB.name());
-        });
 
-        // verify the Micrometer counter was incremented
-        double counterValue = meterRegistry.find("incidents.detected")
-                .counters().stream()
-                .mapToDouble(c -> c.count())
-                .sum();
-        assertThat(counterValue).isGreaterThan(0.0);
+            double counterValue = meterRegistry.find("incidents.detected")
+                    .counters().stream()
+                    .mapToDouble(c -> c.count())
+                    .sum();
+            assertThat(counterValue).isGreaterThan(0.0);
+        });
     }
 
     private void publish(List<BatchEvent> events) throws Exception {
