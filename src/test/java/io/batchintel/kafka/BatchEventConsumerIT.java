@@ -3,8 +3,8 @@ package io.batchintel.kafka;
 import io.batchintel.persistence.DynamoTableUtils;
 import io.batchintel.utils.Constants;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-@Disabled("Testcontainers Java client cannot connect to Docker Desktop on Windows via named pipe — docker CLI works but the daemon API returns 400 via npipe; passes on Linux/macOS CI")
+@Tag("integration")
 @SpringBootTest
 @ActiveProfiles("test")
 @TestPropertySource(properties = {
@@ -91,15 +91,15 @@ class BatchEventConsumerIT {
     @DisplayName("poison message (invalid JSON) is routed to DLQ without crashing the consumer")
     void poisonMessageRoutedToDlq() {
         String poison = "{ this is not json }";
-
         kafkaTemplate.send(Constants.TOPIC_BATCH_EVENTS, "ANNUITY_PAYOUT", poison);
 
-        await().atMost(15, TimeUnit.SECONDS).untilAsserted(() -> {
-            // Consumer must still be alive — a second valid event must be processed
-            String followUpId = UUID.randomUUID().toString();
-            kafkaTemplate.send(Constants.TOPIC_BATCH_EVENTS, "ANNUITY_PAYOUT",
-                buildCompletedEvent(followUpId, "ANNUITY_PAYOUT", 100.0, 0));
+        // send the follow-up event once — outside the await so the same ID is checked
+        // on every poll iteration rather than generating a new UUID each retry
+        String followUpId = UUID.randomUUID().toString();
+        kafkaTemplate.send(Constants.TOPIC_BATCH_EVENTS, "ANNUITY_PAYOUT",
+            buildCompletedEvent(followUpId, "ANNUITY_PAYOUT", 100.0, 0));
 
+        await().atMost(15, TimeUnit.SECONDS).untilAsserted(() -> {
             ScanResponse processed = dynamoDbClient.scan(ScanRequest.builder()
                 .tableName(Constants.TABLE_PROCESSED_EVENTS).build());
             assertThat(processed.items()).anyMatch(item ->

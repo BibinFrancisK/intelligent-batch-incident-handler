@@ -4,6 +4,7 @@ import io.batchintel.config.AnomalyConfig;
 import io.batchintel.domain.incidents.AnomalyScore;
 import io.batchintel.domain.metrics.FeatureVector;
 import io.batchintel.domain.metrics.JobType;
+import io.micrometer.observation.annotation.Observed;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Component
 @ConditionalOnProperty(name = "incident.anomaly.detector", havingValue = "ewma", matchIfMissing = true)
-public final class EwmaAnomalyDetector implements AnomalyDetector {
+public non-sealed class EwmaAnomalyDetector implements AnomalyDetector {
 
     private static final double EPSILON = 1e-9;
     private final double alpha;
@@ -27,6 +28,7 @@ public final class EwmaAnomalyDetector implements AnomalyDetector {
         this.threshold = config.threshold();
     }
 
+    @Observed(name = "anomaly.score", contextualName = "ewma.score")
     @Override
     public AnomalyScore score(FeatureVector vector) {
         double x = vector.durationSeconds();

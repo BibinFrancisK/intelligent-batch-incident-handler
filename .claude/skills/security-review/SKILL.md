@@ -35,7 +35,7 @@ See `checklist.md` in this directory for the full itemized list. At a high level
 
 - Authentication / authorization — explicitly out of scope
 - HTTPS / TLS — terminated at the load balancer in AWS; HTTP is acceptable locally
-- AWS IAM policies — covered by the CDK stack in `infra/cdk/`, not reviewed here
+- AWS IAM policies — covered by the Terraform stack in `infra/terraform/`, not reviewed here
 - Grafana or Prometheus access control — admin/admin is acceptable for local dev only
 
 ---

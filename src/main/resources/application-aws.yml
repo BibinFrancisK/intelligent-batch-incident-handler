@@ -1,0 +1,12 @@
+aws:
+  dynamodb:
+    endpoint: ""
+  credentials:
+    access-key-id: ""
+    secret-access-key: ""
+
+incident:
+  llm:
+    provider: gemini
+  notify:
+    provider: slack

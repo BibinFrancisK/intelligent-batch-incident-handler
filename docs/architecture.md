@@ -193,6 +193,6 @@ Two independent metrics mechanisms run in parallel:
 | LLM out of the critical path | Anomaly persists even if Gemini is down; incident written with `summary=null` tagged `llm_unavailable` |
 | KRaft Kafka (no Zookeeper) | Saves ~300 MB Docker RAM on a 16 GB dev machine |
 | Virtual threads on consumer executor | IO-bound workload; poll loop stays on platform thread (safe) |
-| DynamoDB Local over Postgres | Schema-less, matches the AWS CDK stack, no migration tooling needed at this scope |
+| DynamoDB Local over Postgres | Schema-less, matches the Terraform stack, no migration tooling needed at this scope |
 | EWMA z-score as baseline detector | 30 lines, zero dependencies, always warm — ships before Isolation Forest |
-| `cdk synth` only, never `cdk deploy` | Zero AWS cost; IaC code in `infra/cdk/` is reference architecture only |
+| EC2 t3.micro + real DynamoDB via Terraform | Lambda is incompatible with a long-running Kafka consumer; EC2 runs Docker Compose (Kafka, Prometheus, Grafana) + the Spring Boot app; `terraform destroy` after every demo run to avoid ongoing EC2 billing |

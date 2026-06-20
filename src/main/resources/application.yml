@@ -19,6 +19,12 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
+  observations:
+    annotations:
+      enabled: true #allows ObservedAspect bean to intercept method calls
+  tracing:
+    sampling:
+      probability: 1.0 #traces every single event, use ~0.1 for high volume prod. environments
 
 app:
   kafka:
@@ -67,8 +73,8 @@ langchain4j:
 
 aws:
   dynamodb:
-    endpoint: ${AWS_DYNAMODB_ENDPOINT}
+    endpoint: ${AWS_DYNAMODB_ENDPOINT:}
     region: ${AWS_REGION:us-east-1}
   credentials:
-    access-key-id: ${AWS_ACCESS_KEY_ID}
-    secret-access-key: ${AWS_SECRET_ACCESS_KEY}
+    access-key-id: ${AWS_ACCESS_KEY_ID:}
+    secret-access-key: ${AWS_SECRET_ACCESS_KEY:}
