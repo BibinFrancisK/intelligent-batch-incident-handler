@@ -55,7 +55,15 @@ public final class SlackNotifier implements Notifier {
             log.info("Slack deduped incidentId={} fingerprint={}", incident.incidentId(), incident.fingerprint());
             return;
         }
-        CircuitBreaker.decorateRunnable(circuitBreaker, () -> postToSlack(incident)).run();
+        try {
+            CircuitBreaker.decorateRunnable(circuitBreaker, () -> postToSlack(incident)).run();
+        } catch (Exception e) {
+            // Remove fingerprint so the next incident for the same jobType/severity can retry.
+            // Do not re-throw — Slack is non-critical; incident is already persisted.
+            sentFingerprints.remove(incident.fingerprint());
+            log.error("Slack notification failed incidentId={} — fingerprint removed for retry. reason={}",
+                incident.incidentId(), e.getMessage());
+        }
     }
 
     @Override

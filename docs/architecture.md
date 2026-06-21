@@ -191,7 +191,7 @@ Two independent metrics mechanisms run in parallel:
 |---|---|
 | Sealed interfaces for `LlmProvider`, `AnomalyDetector`, `Notifier` | Exhaustive pattern matching; swappable at startup via `application.yml` |
 | LLM out of the critical path | Anomaly persists even if Gemini is down; incident written with `summary=null` tagged `llm_unavailable` |
-| KRaft Kafka (no Zookeeper) | Saves ~300 MB Docker RAM on a 16 GB dev machine |
+| KRaft Kafka (no Zookeeper) | Eliminates ~300 MB of Docker memory and a separate Zookeeper container; production-grade since Kafka 3.3 |
 | Virtual threads on consumer executor | IO-bound workload; poll loop stays on platform thread (safe) |
 | DynamoDB Local over Postgres | Schema-less, matches the Terraform stack, no migration tooling needed at this scope |
 | EWMA z-score as baseline detector | 30 lines, zero dependencies, always warm — ships before Isolation Forest |

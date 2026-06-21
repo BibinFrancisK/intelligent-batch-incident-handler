@@ -28,11 +28,12 @@ public final class GeminiProvider implements LlmProvider {
     public GeminiProvider(
             @Value("${langchain4j.google-ai-gemini.api-key}") String apiKey,
             @Value("${langchain4j.google-ai-gemini.model-name}") String modelName,
+            @Value("${langchain4j.google-ai-gemini.timeout-seconds:15}") int timeoutSeconds,
             ObjectMapper objectMapper) {
         this.chatModel = GoogleAiGeminiChatModel.builder()
                 .apiKey(apiKey)
                 .modelName(modelName)
-                .timeout(Duration.ofSeconds(3))
+                .timeout(Duration.ofSeconds(timeoutSeconds))
                 .logRequestsAndResponses(false)
                 .build();
         this.objectMapper = objectMapper;

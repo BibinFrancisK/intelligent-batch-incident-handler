@@ -10,7 +10,7 @@ public final class Constants {
     public static final String ARG_ANOMALY = "--anomaly=true";
     public static final String ARG_COUNT = "--count";
     public static final String DEFAULT_SIMULATOR_COUNT = "1";
-    public static final int SIMULATOR_WARM_UP_RUNS = 5; // normal runs published before an anomalous one to seed EWMA state
+    public static final int SIMULATOR_WARM_UP_RUNS = 10; // normal runs published before an anomalous one to seed EWMA state
 
     // BatchEvent type discriminator values — must match the "eventType" field in Kafka JSON payloads
     public static final String EVENT_TYPE_JOB_STARTED = "JOB_STARTED";

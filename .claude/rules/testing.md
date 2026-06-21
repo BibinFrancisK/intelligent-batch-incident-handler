@@ -46,14 +46,14 @@
 
 - Use `KafkaContainer` (`confluentinc/cp-kafka:7.6.1`) for all Kafka integration tests.
 - Use `GenericContainer` (`amazon/dynamodb-local:2.5.2`) with `-inMemory -sharedDb` for DynamoDB tests.
-- Always wire dynamic ports via `@DynamicPropertySource` — never hardcode `localhost:9092`.
+- Always wire dynamic ports via `@DynamicPropertySource` — never hardcode `<host-name>:9092`.
 - Containers declared `static` — reused across all tests in the class (startup cost paid once).
 
 ```java
 @DynamicPropertySource
 static void props(DynamicPropertyRegistry r) {
     r.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
-    r.add("aws.dynamodb.endpoint", () -> "http://localhost:" + ddb.getMappedPort(8000));
+    r.add("aws.dynamodb.endpoint", () -> "http://<host-name>:" + ddb.getMappedPort(8000));
 }
 ```
 

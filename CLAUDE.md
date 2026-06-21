@@ -24,20 +24,24 @@ docker compose -f docker/docker-compose.yml up -d
 # Inject an anomaly for end-to-end testing
 # -Dspring.profiles.active=local is required — exec:java is a plain JVM launch and does not
 # honor -Dspring-boot.run.profiles; without it spring.kafka.bootstrap-servers is unresolved
+# -Dspring.main.web-application-type=none prevents the simulator from binding port 8080,
+# which would collide with the already-running app
+# --anomaly=true auto-publishes SIMULATOR_WARM_UP_RUNS normal events before the spike
 ./mvnw exec:java -Dexec.mainClass="io.batchintel.simulator.BatchSimulatorRunner" \
   -Dspring.profiles.active=local \
-  -Dexec.args="--jobType=ANNUITY_PAYOUT --anomaly=true"
+  -Dspring.main.web-application-type=none \
+  "-Dexec.args=--jobType=ANNUITY_PAYOUT --anomaly=true"
 
 # Check DLQ depth
 docker exec kafka kafka-run-class kafka.tools.GetOffsetShell \
-  --broker-list localhost:9092 --topic batch.events.v1.dlq
+  --broker-list <host-name>:9092 --topic batch.events.v1.dlq
 
 # Tail incidents topic
-docker exec kafka kafka-console-consumer --bootstrap-server localhost:9092 \
+docker exec kafka kafka-console-consumer --bootstrap-server <host-name>:9092 \
   --topic incidents.v1 --from-beginning
 
 # Scan DynamoDB incidents table
-aws dynamodb scan --table-name incidents --endpoint-url http://localhost:8000
+aws dynamodb scan --table-name incidents --endpoint-url http://<host-name>:8000
 
 # Terraform — provision AWS infra (EC2 + DynamoDB)
 cd infra/terraform && terraform init && terraform apply -var="environment=demo"
@@ -107,7 +111,7 @@ BatchSimulatorRunner → Kafka (batch.events.v1)
 
 ## Observability
 
-- **Metrics**: Micrometer → `http://localhost:8080/actuator/prometheus` → Prometheus (`:9090`) → Grafana (`:3000`, admin/admin)
+- **Metrics**: Micrometer → `http://<host-name>:8080/actuator/prometheus` → Prometheus (`:9090`) → Grafana (`:3000`, admin/admin)
 - **Grafana dashboard**: provisioned automatically from `docker/grafana/dashboards/batch-health.json`; 6 panels: throughput, error rate, p95 duration, anomaly scores, incidents by severity, LLM latency
 - **Traces**: OpenTelemetry SDK with `traceId`/`spanId` injected into MDC — visible in JSON logs; no Jaeger (RAM constraint on local dev)
 - **Logs**: Logback JSON encoder; fields include `eventId`, `jobType`, `traceId`, `spanId`
