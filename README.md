@@ -76,8 +76,6 @@ flowchart LR
     PR --> GR
 ```
 
-![Architecture](docs/img/architecture.png)
-
 See [`docs/architecture.md`](docs/architecture.md) for the full design deep-dive including sequence diagrams, DynamoDB table layouts, and dual metrics path explanation.
 
 ---
@@ -117,7 +115,7 @@ See [`docs/architecture.md`](docs/architecture.md) for the full design deep-dive
 
 ```bash
 # 1. Clone
-git clone https://github.com/bibinfrancis404/intelligent-batch-incident-handler.git
+git clone https://github.com/BibinFrancisK/intelligent-batch-incident-handler.git
 cd intelligent-batch-incident-handler
 
 # 2. Start infra (Kafka, Prometheus, Grafana, DynamoDB Local)
