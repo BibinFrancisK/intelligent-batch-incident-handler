@@ -12,8 +12,8 @@ aws:
 
 incident:
   llm:
-    provider: noop
+    provider: gemini
   notify:
-    provider: noop
+    provider: slack
   anomaly:
-    detector: isolation-forest
+    detector: ewma

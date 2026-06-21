@@ -40,7 +40,7 @@ resilience4j:
       llm-provider: # name should match CircuitBreaker bean
         slidingWindowSize: 10 # track the last 10 calls
         failureRateThreshold: 50 # if ≥50% of those 10 calls fail → trip open
-        waitDurationInOpenState: 30s # stay open for 30 seconds (Gemini gets time to recover)
+        waitDurationInOpenState: 60s # stay open for 60 seconds then probe (Gemini cold-start can be slow)
         permittedNumberOfCallsInHalfOpenState: 3
         registerHealthIndicator: true # expose state at /actuator/health (OPEN/CLOSED/HALF_OPEN)
       slack-notifier:
@@ -67,7 +67,7 @@ langchain4j:
   google-ai-gemini:
     api-key: ${GEMINI_API_KEY}
     model-name: ${GEMINI_MODEL_NAME:gemini-flash-latest}
-    timeout: 3s
+    timeout-seconds: 15   # read by GeminiProvider; override per-env via env var or profile
     log-requests: false
     log-responses: false
 

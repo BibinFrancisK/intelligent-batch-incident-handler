@@ -4,6 +4,54 @@ Operational reference for local dev, AWS demo deployment, and CI recovery.
 
 ---
 
+## Local Development
+
+### Start infra
+
+```bash
+docker compose -f docker/docker-compose.yml up -d
+# Wait ~30s for Kafka healthcheck to pass
+```
+
+### Start the app
+
+```bash
+export GEMINI_API_KEY=<your-key>        # omit if incident.llm.provider=noop
+export SLACK_WEBHOOK_URL=<your-webhook> # omit if incident.notify.provider=noop
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+### Inject an anomaly
+
+A single command publishes 10 warm-up events to seed the EWMA baseline, then one anomalous run — same JVM, same Kafka partition, guaranteed ordering:
+
+```bash
+./mvnw exec:java \
+  -Dexec.mainClass="io.batchintel.simulator.BatchSimulatorRunner" \
+  -Dspring.profiles.active=local \
+  -Dspring.main.web-application-type=none \
+  "-Dexec.args=--jobType=ANNUITY_PAYOUT --anomaly=true"
+```
+
+### Stop everything
+
+```bash
+# Stop app: Ctrl+C in the mvnw terminal
+docker compose -f docker/docker-compose.yml down -v
+```
+
+### Service URLs
+
+| Service | URL | Credentials |
+|---|---|---|
+| App health | `http://<host-name>:8080/actuator/health` | — |
+| Prometheus metrics | `http://<host-name>:8080/actuator/prometheus` | — |
+| Prometheus UI | `http://<host-name>:9090` | — |
+| Grafana | `http://<host-name>:3000` | admin / admin |
+| DynamoDB Local | `http://<host-name>:8000` | dummy / dummy |
+
+---
+
 ## AWS Demo Deployment
 
 > **Cost reminder:** EC2 t3.micro accrues ~$0.01/hr. Run `terraform destroy` as soon as testing is complete.
@@ -127,13 +175,13 @@ docker compose -f docker/docker-compose.yml restart dynamodb
 # Count rows in the idempotency table (should equal unique events processed)
 aws dynamodb scan \
   --table-name processed_events \
-  --endpoint-url http://localhost:8000 \
+  --endpoint-url http://<host-name>:8000 \
   --select COUNT
 
 # View full dedupe table (small volumes only)
 aws dynamodb scan \
   --table-name processed_events \
-  --endpoint-url http://localhost:8000
+  --endpoint-url http://<host-name>:8000
 ```
 
 ### Inspect rolling metrics
@@ -142,12 +190,12 @@ aws dynamodb scan \
 # Full metrics_state table — one row per jobType
 aws dynamodb scan \
   --table-name metrics_state \
-  --endpoint-url http://localhost:8000
+  --endpoint-url http://<host-name>:8000
 
 # Single jobType row
 aws dynamodb get-item \
   --table-name metrics_state \
-  --endpoint-url http://localhost:8000 \
+  --endpoint-url http://<host-name>:8000 \
   --key '{"jobType":{"S":"ANNUITY_PAYOUT"}}'
 ```
 
@@ -156,7 +204,7 @@ aws dynamodb get-item \
 ```bash
 aws dynamodb scan \
   --table-name incidents \
-  --endpoint-url http://localhost:8000
+  --endpoint-url http://<host-name>:8000
 ```
 
 ---
@@ -167,7 +215,7 @@ aws dynamodb scan \
 
 ```bash
 docker exec kafka kafka-run-class kafka.tools.GetOffsetShell \
-  --broker-list localhost:9092 \
+  --broker-list <host-name>:9092 \
   --topic batch.events.v1.dlq
 ```
 
@@ -175,7 +223,7 @@ docker exec kafka kafka-run-class kafka.tools.GetOffsetShell \
 
 ```bash
 docker exec kafka kafka-console-consumer \
-  --bootstrap-server localhost:9092 \
+  --bootstrap-server <host-name>:9092 \
   --topic incidents.v1 \
   --from-beginning
 ```
@@ -187,7 +235,7 @@ Use this to replay all events through the metrics pipeline in testing.
 ```bash
 # Stop the Spring Boot app first, then:
 docker exec kafka kafka-consumer-groups \
-  --bootstrap-server localhost:9092 \
+  --bootstrap-server <host-name>:9092 \
   --group incident-intelligence \
   --reset-offsets \
   --to-earliest \
@@ -201,7 +249,7 @@ docker exec kafka kafka-consumer-groups \
 
 ```bash
 # Confirm Prometheus scrape endpoint is up
-curl -s http://localhost:8080/actuator/prometheus | grep batch_
+curl -s http://<host-name>:8080/actuator/prometheus | grep batch_
 
 # Expected output includes:
 # batch_events_processed_total{jobType="ANNUITY_PAYOUT",eventType="JobCompleted"} ...
